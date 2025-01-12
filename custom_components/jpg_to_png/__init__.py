@@ -1,25 +1,32 @@
-from homeassistant.config_entries import ConfigFlow, OptionsFlow
-from homeassistant.core import HomeAssistant
-from homeassistant.helpers import config_validation as cv
-import voluptuous as vol
+"""The JPG to PNG Converter integration."""
+from __future__ import annotations
 
+import logging
+from PIL import Image
+
+from homeassistant.core import HomeAssistant, ServiceCall
+from homeassistant.helpers.typing import ConfigType
+
+_LOGGER = logging.getLogger(__name__)
 DOMAIN = "jpg_to_png"
 
-class JpgToPngConfigFlow(ConfigFlow, domain=DOMAIN):
-    """Handle a config flow for JPG to PNG Converter."""
+async def async_setup(hass: HomeAssistant, config: ConfigType) -> bool:
+    """Set up the JPG to PNG Converter component."""
+    
+    async def convert_jpg_to_png(call: ServiceCall) -> None:
+        """Handle the service call."""
+        source_path = call.data.get("source_path")
+        destination_path = call.data.get("destination_path")
 
-    async def async_step_user(self, user_input=None):
-        """Handle the initial step."""
-        return self.async_create_entry(title="JPG to PNG Converter", data={})
+        try:
+            # Convert image from JPG to PNG
+            with Image.open(source_path) as img:
+                img.save(destination_path, 'PNG')
+            _LOGGER.info(f"Successfully converted {source_path} to {destination_path}")
+        except Exception as e:
+            _LOGGER.error(f"Error converting image: {str(e)}")
 
-async def async_setup_entry(hass: HomeAssistant, entry):
-    """Set up from a config entry."""
-    hass.async_create_task(
-        hass.config_entries.async_forward_entry_setup(entry, "jpg_to_png")
-    )
-    return True
-
-async def async_unload_entry(hass: HomeAssistant, entry):
-    """Unload a config entry."""
+    hass.services.async_register(DOMAIN, "convert_jpg_to_png", convert_jpg_to_png)
+    
     return True
 

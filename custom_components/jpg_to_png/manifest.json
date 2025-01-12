@@ -1,0 +1,9 @@
+{
+      "domain": "jpg_to_png",
+      "name": "JPG to PNG Converter",
+      "version": "1.0.0",
+      "documentation": "https://github.com/youkorr/jpg-to-png-converter",
+      "dependencies": [],
+      "codeowners": ["@youkorr"],
+      "requirements": ["Pillow"]
+    }

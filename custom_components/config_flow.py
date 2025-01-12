@@ -11,6 +11,7 @@ from homeassistant.data_entry_flow import FlowResult
 
 from .const import DOMAIN
 
+@config_entries.HANDLERS.register(DOMAIN)
 class JPGToPNGConverterConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
     """Handle a config flow for JPG to PNG Converter."""
 

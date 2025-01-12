@@ -1,14 +1,15 @@
 convert_jpg_to_png:
-      name: Convert JPG to PNG
-      description: Converts JPG images to PNG format
-      fields:
-        source_path:
-          name: Source Path
-          description: Path to the source JPG file
-          required: true
-          example: "/config/www/images/input.jpg"
-        destination_path:
-          name: Destination Path
-          description: Path to save the converted PNG file
-          required: true
-          example: "/config/www/images/output.png"
+  name: Convert JPG to PNG
+  description: Converts JPG images to PNG format
+  fields:
+    source_path:
+      name: Source Path
+      description: Path to the source JPG file
+      required: true
+      example: "/config/www/images/input.jpg"
+    destination_path:
+      name: Destination Path
+      description: Path to save the converted PNG file
+      required: true
+      example: "/config/www/images/output.png"
+

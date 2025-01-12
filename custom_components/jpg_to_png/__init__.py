@@ -1,9 +1,15 @@
 """The JPG to PNG Converter integration."""
-    from homeassistant.core import HomeAssistant
-    from homeassistant.helpers.typing import ConfigType
+from homeassistant.config_entries import ConfigEntry
+from homeassistant.core import HomeAssistant
 
-    DOMAIN = "jpg_to_png"
+DOMAIN = "jpg_to_png"
 
-    async def async_setup(hass: HomeAssistant, config: ConfigType) -> bool:
-        """Set up the JPG to PNG Converter component."""
-        return True
+async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
+    """Set up JPG to PNG Converter from a config entry."""
+    # No setup required, just return True
+    return True
+
+async def async_unload_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
+    """Unload a config entry."""
+    # No cleanup required, just return True
+    return True

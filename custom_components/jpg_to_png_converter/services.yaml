@@ -1,6 +1,6 @@
 convert:
   name: Convert JPG to PNG
-  description: Convert a JPG image to PNG format
+  description: Convert a JPG image to PNG format with custom resolution
   fields:
     input_path:
       name: Input Path
@@ -16,3 +16,17 @@ convert:
       example: "/config/www/image.png"
       selector:
         text:
+    resolution:
+      name: Resolution
+      description: Select output resolution
+      required: false
+      default: "320x240"
+      selector:
+        select:
+          options:
+            - "320x240"
+            - "640x480"
+            - "800x600"
+            - "1280x720"
+            - "1920x1080"
+            - "original"

@@ -6,6 +6,15 @@ from homeassistant.core import HomeAssistant, ServiceCall
 
 _LOGGER = logging.getLogger(__name__)
 
+RESOLUTIONS = {
+    "320x240": (320, 240),
+    "640x480": (640, 480),
+    "800x600": (800, 600),
+    "1280x720": (1280, 720),
+    "1920x1080": (1920, 1080),
+    "original": None
+}
+
 async def async_setup_services(hass: HomeAssistant) -> None:
     """Set up services for JPG to PNG Converter."""
     
@@ -13,6 +22,7 @@ async def async_setup_services(hass: HomeAssistant) -> None:
         """Handle the service call."""
         input_path = call.data.get("input_path")
         output_path = call.data.get("output_path", None)
+        resolution = call.data.get("resolution", "320x240")
         
         if not output_path:
             output_path = os.path.splitext(input_path)[0] + ".png"
@@ -21,17 +31,31 @@ async def async_setup_services(hass: HomeAssistant) -> None:
             # Check if input file exists
             if not os.path.exists(input_path):
                 raise Exception(f"Input file not found: {input_path}")
-                
-            # Create output directory if it doesn't exist
-            os.makedirs(os.path.dirname(output_path), exist_ok=True)
             
-            # Open and convert image
             _LOGGER.debug(f"Opening image from {input_path}")
             img = Image.open(input_path)
             
-            _LOGGER.debug(f"Saving image to {output_path}")
-            img.save(output_path, "PNG")
-            _LOGGER.info(f"Successfully converted {input_path} to {output_path}")
+            # Resize the image if resolution is specified and not original
+            if resolution != "original" and resolution in RESOLUTIONS:
+                target_size = RESOLUTIONS[resolution]
+                img = img.resize(target_size)
+                _LOGGER.debug(f"Resizing image to {resolution}")
+            
+            # Delete existing PNG if it exists
+            if os.path.exists(output_path):
+                _LOGGER.debug(f"Deleting old PNG file: {output_path}")
+                os.remove(output_path)
+            
+            # Create output directory if it doesn't exist
+            os.makedirs(os.path.dirname(output_path), exist_ok=True)
+            
+            _LOGGER.debug(f"Saving PNG image to {output_path}")
+            img.save(output_path, "PNG", optimize=True)
+            
+            if os.path.exists(output_path):
+                _LOGGER.info(f"Successfully converted {input_path} to {output_path} with resolution {resolution}")
+            else:
+                raise Exception(f"PNG file was not saved: {output_path}")
             
         except Exception as e:
             _LOGGER.error(f"Error converting image: {str(e)}")

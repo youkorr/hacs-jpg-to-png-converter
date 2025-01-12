@@ -1,0 +1,14 @@
+{
+  "title": "JPG to PNG Converter",
+  "config": {
+    "step": {
+      "user": {
+        "title": "JPG to PNG Converter",
+        "description": "Set up JPG to PNG Converter integration"
+      }
+    },
+    "abort": {
+      "single_instance_allowed": "[%key:common::config_flow::abort::single_instance_allowed%]"
+    }
+  }
+}

@@ -1,0 +1,18 @@
+convert:
+  name: Convert JPG to PNG
+  description: Convert a JPG image to PNG format
+  fields:
+    input_path:
+      name: Input Path
+      description: Path to the input JPG file
+      required: true
+      example: "/config/www/image.jpg"
+      selector:
+        text:
+    output_path:
+      name: Output Path
+      description: Path where the PNG file should be saved (optional, will use same name as input if not specified)
+      required: false
+      example: "/config/www/image.png"
+      selector:
+        text:

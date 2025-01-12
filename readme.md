@@ -84,9 +84,6 @@ automation:
 
 ```
 
-## Requirements
-- [Pillow](https://pypi.org/project/Pillow/) Python library (installed automatically if missing)
-- Home Assistant 2024.1.0 or newer
 
 ## Support
 If you encounter any issues or have suggestions, please [open an issue](https://github.com/youkorr/hacs-jpg-to-png-converter/issues).

@@ -1,0 +1,5 @@
+{
+  "name": "JPG to PNG Converter",
+  "render_readme": true,
+  "homeassistant": "2023.8.0"
+}

@@ -1,9 +1,9 @@
 {
+  "title": "JPG to PNG Converter",
+  "config": {
+    "step_user": {
       "title": "JPG to PNG Converter",
-      "config": {
-        "step_user": {
-          "title": "JPG to PNG Converter",
-          "description": "Configure the JPG to PNG Converter integration"
-        }
-      }
+      "description": "No configuration required. Click Submit to continue."
     }
+  }
+}

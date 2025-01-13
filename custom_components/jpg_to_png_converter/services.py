@@ -23,6 +23,7 @@ async def async_setup_services(hass: HomeAssistant) -> None:
         input_path = call.data.get("input_path")
         output_path = call.data.get("output_path", None)
         resolution = call.data.get("resolution", "320x240")
+        optimize = call.data.get("optimize", False)
         
         if not output_path:
             output_path = os.path.splitext(input_path)[0] + ".png"
@@ -40,6 +41,11 @@ async def async_setup_services(hass: HomeAssistant) -> None:
                 target_size = RESOLUTIONS[resolution]
                 img = img.resize(target_size)
                 _LOGGER.debug(f"Resizing image to {resolution}")
+            
+            # Optimize image if requested
+            if optimize:
+                _LOGGER.debug("Optimizing image with 256 color palette")
+                img = img.convert("P", palette=Image.ADAPTIVE, colors=256)
             
             # Delete existing PNG if it exists
             if os.path.exists(output_path):

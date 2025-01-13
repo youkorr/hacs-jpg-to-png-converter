@@ -1,3 +1,6 @@
+<p align="center">
+  <img src="https://raw.githubusercontent.com/youkorr/hacs-jpg-to-png-converter/main/custom_components/jpg_to_png_converter/images/logo.png" alt="JPG to PNG Converter" width="400"/>
+</p>
 
 # JPG to PNG Converter for Home Assistant
 
@@ -61,7 +64,7 @@ data:
 - `output_path`: Path where the PNG file should be saved (optional)
 - `resolution`: Output resolution (optional, defaults to "320x240")
   - Available options: "original", "320x240", "640x480", "800x600", "1280x720", "1920x1080"
-- `optimize`: Enable 256 colors optimization for ESP32 
+- `optimize`: Enable 256 colors optimization for ESP32 (optional, defaults to false)
 
 ### Example Automations
 
@@ -109,7 +112,4 @@ For bugs or feature requests, please open an issue on GitHub.
 
 ## License
 This project is licensed under the MIT License - see the LICENSE file for details.
-If you encounter any issues or have suggestions, please [open an issue](https://github.com/youkorr/hacs-jpg-to-png-converter/issues).
 
-## License
-This project is licensed under the MIT License. See the [LICENSE](LICENSE) file for details.

@@ -16,7 +16,7 @@ convert:
       selector:
         text: {}
     resolution:
-      description: "Select output resolution (256 colors for ESP32 optimization)"
+      description: "Select output resolution"
       example: "original"
       default: "320x240"
       required: false

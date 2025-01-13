@@ -18,7 +18,7 @@ convert:
     resolution:
       description: "Select output resolution"
       example: "original"
-      default: "320x240"
+      default: "original"
       required: false
       selector:
         select:

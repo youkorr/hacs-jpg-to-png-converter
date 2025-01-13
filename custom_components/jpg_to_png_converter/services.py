@@ -43,7 +43,7 @@ async def async_setup_services(hass: HomeAssistant) -> None:
             # Resize first if needed
             if resolution != "original" and resolution in RESOLUTIONS:
                 target_size = RESOLUTIONS[resolution]
-                img = img.resize(target_size, Image.Resampling.LANCZOS)
+                img = img.resize(target_size, Image.Resampling.BILINEAR)  # Changed to BILINEAR for speed
                 _LOGGER.debug(f"Resizing image to {resolution}")
             
             # Apply optimization based on mode
@@ -52,8 +52,8 @@ async def async_setup_services(hass: HomeAssistant) -> None:
                 img = img.convert("P", palette=Image.ADAPTIVE, colors=256)
             elif optimize_mode == "standard":
                 _LOGGER.debug("Applying standard optimization (128 colors)")
+                # Simplified optimization for speed
                 img = img.convert("P", palette=Image.ADAPTIVE, colors=128)
-                img = img.quantize(colors=128, method=2)
             
             # Delete existing PNG if it exists
             if os.path.exists(output_path):
@@ -64,16 +64,12 @@ async def async_setup_services(hass: HomeAssistant) -> None:
             os.makedirs(os.path.dirname(output_path), exist_ok=True)
             
             _LOGGER.debug(f"Saving PNG image to {output_path}")
-            # Save with appropriate settings
+            # Optimized save settings
             save_options = {
                 "format": "PNG",
                 "optimize": True,
-                "compress_level": 9
+                "compress_level": 6  # Reduced from 9 to 6 for better speed/size balance
             }
-            
-            # Add bits option only for standard optimization
-            if optimize_mode == "standard":
-                save_options["bits"] = 8
             
             img.save(output_path, **save_options)
             

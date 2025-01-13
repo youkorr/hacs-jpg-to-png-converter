@@ -1,6 +1,6 @@
 # Service jpg_to_png_converter.convert
 convert:
-  description: Convert a JPG image to PNG format with custom resolution
+  description: "Convert a JPG image to PNG format. Note: 256 colors optimization compresses the image for faster loading on ESP32 devices"
   target: {}
   fields:
     input_path:
@@ -16,21 +16,21 @@ convert:
       selector:
         text: {}
     resolution:
-      description: Select output resolution
-      example: "320x240"
+      description: "Select output resolution (use 'original' with 256 colors for ESP32 optimization)"
+      example: "original"
       default: "320x240"
       required: false
       selector:
         select:
           options:
+            - "original"
             - "320x240"
             - "640x480"
             - "800x600"
             - "1280x720"
             - "1920x1080"
-            - "original"
     optimize:
-      description: Reduce color palette to 256 colors
+      description: "Enable 256 colors optimization (compresses image for faster ESP32 loading, use with resolution: original)"
       required: false
       default: false
       selector:

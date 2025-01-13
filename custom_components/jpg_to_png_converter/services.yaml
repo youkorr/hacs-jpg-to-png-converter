@@ -1,0 +1,39 @@
+jpg_to_png_converter.convert:
+  name: Convert JPG to PNG
+  description: Convert a JPG image to PNG format with custom resolution
+  fields:
+    input_path:
+      name: Input Path
+      description: Path to the input JPG file
+      required: true
+      example: "/config/www/image.jpg"
+      selector:
+        text: {}
+    output_path:
+      name: Output Path
+      description: Path where the PNG file should be saved
+      required: false
+      example: "/config/www/image.png"
+      selector:
+        text: {}
+    resolution:
+      name: Resolution
+      description: Select output resolution
+      required: false
+      default: "320x240"
+      selector:
+        select:
+          options:
+            - "320x240"
+            - "640x480"
+            - "800x600"
+            - "1280x720"
+            - "1920x1080"
+            - "original"
+    optimize:
+      name: Optimize Image
+      description: Reduce color palette to 256 colors
+      required: false
+      default: false
+      selector:
+        boolean: {}

@@ -36,16 +36,16 @@ async def async_setup_services(hass: HomeAssistant) -> None:
             _LOGGER.debug(f"Opening image from {input_path}")
             img = Image.open(input_path)
             
-            # Resize the image if resolution is specified and not original
+            # Optimize first if enabled (before resize for better quality)
+            if optimize:
+                _LOGGER.debug("Optimizing image with 256 colors")
+                img = img.convert("P", palette=Image.ADAPTIVE, colors=256)
+            
+            # Then resize if needed
             if resolution != "original" and resolution in RESOLUTIONS:
                 target_size = RESOLUTIONS[resolution]
-                img = img.resize(target_size)
+                img = img.resize(target_size, Image.Resampling.LANCZOS)
                 _LOGGER.debug(f"Resizing image to {resolution}")
-            
-            # Optimize image if requested
-            if optimize:
-                _LOGGER.debug("Optimizing image with 256 color palette")
-                img = img.convert("P", palette=Image.ADAPTIVE, colors=256)
             
             # Delete existing PNG if it exists
             if os.path.exists(output_path):
@@ -56,10 +56,15 @@ async def async_setup_services(hass: HomeAssistant) -> None:
             os.makedirs(os.path.dirname(output_path), exist_ok=True)
             
             _LOGGER.debug(f"Saving PNG image to {output_path}")
-            img.save(output_path, "PNG", optimize=True)
+            # Add compression level for smaller file size
+            img.save(output_path, "PNG", optimize=True, compress_level=9)
             
             if os.path.exists(output_path):
-                _LOGGER.info(f"Successfully converted {input_path} to {output_path} with resolution {resolution}")
+                _LOGGER.info(f"Successfully converted {input_path} to {output_path}")
+                # Log file sizes for comparison
+                original_size = os.path.getsize(input_path)
+                converted_size = os.path.getsize(output_path)
+                _LOGGER.info(f"File sizes - Original: {original_size/1024:.1f}KB, Converted: {converted_size/1024:.1f}KB")
             else:
                 raise Exception(f"PNG file was not saved: {output_path}")
             

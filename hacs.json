@@ -2,12 +2,5 @@
   "name": "JPG to PNG Converter",
   "render_readme": true,
   "homeassistant": "2023.8.0",
-  "hacs": "1.6.0",
-  "filename": "jpg_to_png_converter.zip",
-  "hide_default_branch": true,
-  "domains": ["jpg_to_png_converter"],
-  "country": ["US", "FR"],
-  "iot_class": "Local Polling",
-  "zip_release": true,
-  "content_in_root": false
+  "hacs": "1.6.0"
 }

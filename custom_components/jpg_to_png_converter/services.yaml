@@ -30,3 +30,10 @@ convert:
             - "1280x720"
             - "1920x1080"
             - "original"
+    optimize:
+      name: Optimize Image
+      description: Reduce color palette to 256 colors for smaller file size
+      required: false
+      default: false
+      selector:
+        boolean

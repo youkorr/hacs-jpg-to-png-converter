@@ -64,7 +64,7 @@ data:
 - `output_path`: Path where the PNG file should be saved (optional)
 - `resolution`: Output resolution (optional, defaults to "320x240")
   - Available options: "original", "320x240", "640x480", "800x600", "1280x720", "1920x1080"
-- `optimize`: Enable 256 colors optimization for ESP32 (optional, defaults to false)
+- `optimize`: Enable 256 colors optimization for ESP32 
 
 ### Example Automations
 

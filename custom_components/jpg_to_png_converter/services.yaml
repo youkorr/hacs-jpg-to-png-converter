@@ -30,7 +30,7 @@ convert:
             - "1280x720"
             - "1920x1080"
     optimize:
-      description: "Enable 256 colors optimization (compresses image for faster ESP32 loading, use with resolution: original)"
+      description: "Enable 256 colors optimization (compresses image for faster ESP32 loading)"
       required: false
       default: false
       selector:

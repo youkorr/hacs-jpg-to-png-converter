@@ -40,6 +40,10 @@ The integration will automatically install required dependencies:
 7. Click "Add"
 8. Install the integration through HACS
 9. Restart Home Assistant
+10. Go to Settings > Devices & Services
+11. Click "Add Integration"
+12. Search for "JPG to PNG"
+13. Follow the configuration steps
 
 ## Usage
 

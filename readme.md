@@ -1,6 +1,3 @@
-<p align="center">
-  <img src="logo.png" alt="JPG to PNG Converter" width="400"/>
-</p>
 
 # JPG to PNG Converter for Home Assistant
 

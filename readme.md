@@ -9,7 +9,8 @@ A Home Assistant integration that converts JPG images to PNG format with customi
 ## Features
 - Convert JPG images to PNG format
 - Multiple resolution options
-- 256 colors optimization for ESP32 devices
+- ESP32 optimization mode (256 colors)
+- Standard optimization mode (128 colors for smaller file size)
 - Automatic output directory creation
 - Optimized PNG output
 
@@ -18,7 +19,7 @@ The integration will automatically install required dependencies:
 - Pillow (Python Imaging Library)
 
 ## Compatible Devices
-- ESP32 (optimized with 256 colors option)
+- ESP32 (optimized with 256 colors mode)
 - Any device that can display PNG images
 - Home Assistant compatible cameras
 
@@ -56,7 +57,7 @@ data:
   input_path: "/config/www/image.jpg"
   output_path: "/config/www/image.png"
   resolution: "original"
-  optimize: true  # Enable 256 colors for ESP32
+  optimize_mode: "esp32"  # Options: "none", "esp32", "standard"
 ```
 
 ### Parameters
@@ -64,26 +65,12 @@ data:
 - `output_path`: Path where the PNG file should be saved (optional)
 - `resolution`: Output resolution (optional, defaults to "320x240")
   - Available options: "original", "320x240", "640x480", "800x600", "1280x720", "1920x1080"
-- `optimize`: Enable 256 colors optimization for ESP32 (optional, defaults to false)
+- `optimize_mode`: Optimization mode (optional, defaults to "none")
+  - "none": No color optimization
+  - "esp32": ESP32 mode with 256 colors (best for ESP32 displays)
+  - "standard": 128 colors optimization for smaller file size
 
 ### Example Automations
-
-#### Convert on Camera Motion
-```yaml
-automation:
-  - alias: "Convert Camera Image on Motion"
-    trigger:
-      - platform: state
-        entity_id: binary_sensor.camera_motion
-        to: "on"
-    action:
-      - service: jpg_to_png_converter.convert
-        data:
-          input_path: "/config/www/camera_image.jpg"
-          output_path: "/config/www/converted/image.png"
-          resolution: "original"
-          optimize: true
-```
 
 #### Convert for ESP32 Display
 ```yaml
@@ -98,14 +85,36 @@ automation:
           input_path: "/config/www/source.jpg"
           output_path: "/config/www/esp32/display.png"
           resolution: "original"
-          optimize: true  # Optimized for ESP32
+          optimize_mode: "esp32"  # Use ESP32 mode for 256 colors
 ```
+
+#### Convert with Size Optimization
+```yaml
+automation:
+  - alias: "Convert with Size Optimization"
+    trigger:
+      - platform: state
+        entity_id: binary_sensor.camera_motion
+        to: "on"
+    action:
+      - service: jpg_to_png_converter.convert
+        data:
+          input_path: "/config/www/camera_image.jpg"
+          output_path: "/config/www/converted/image.png"
+          resolution: "original"
+          optimize_mode: "standard"  # Use standard mode for smaller file size
+```
+
+## Optimization Modes
+- **ESP32 Mode**: Uses 256 colors, optimized for ESP32 displays. Best for maintaining image quality on ESP32 devices.
+- **Standard Mode**: Uses 128 colors with additional compression. Best for reducing file size while maintaining acceptable quality.
 
 ## Troubleshooting
 - Make sure the input path exists and is accessible
 - Ensure Home Assistant has write permissions to the output directory
 - Check Home Assistant logs for detailed error messages
-- For ESP32 devices, use optimize: true with resolution: "original"
+- For ESP32 devices, use optimize_mode: "esp32" with resolution: "original"
+- For smaller file sizes, use optimize_mode: "standard"
 
 ## Support
 For bugs or feature requests, please open an issue on GitHub.

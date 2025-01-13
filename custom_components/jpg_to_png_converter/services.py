@@ -23,7 +23,7 @@ async def async_setup_services(hass: HomeAssistant) -> None:
         input_path = call.data.get("input_path")
         output_path = call.data.get("output_path", None)
         resolution = call.data.get("resolution", "320x240")
-        optimize = call.data.get("optimize", False)
+        optimize_mode = call.data.get("optimize_mode", "none")
         
         if not output_path:
             output_path = os.path.splitext(input_path)[0] + ".png"
@@ -40,18 +40,19 @@ async def async_setup_services(hass: HomeAssistant) -> None:
             if img.mode != 'RGB':
                 img = img.convert('RGB')
             
-            # Resize first if needed (reduce data before optimization)
+            # Resize first if needed
             if resolution != "original" and resolution in RESOLUTIONS:
                 target_size = RESOLUTIONS[resolution]
                 img = img.resize(target_size, Image.Resampling.LANCZOS)
                 _LOGGER.debug(f"Resizing image to {resolution}")
             
-            # Then optimize if enabled
-            if optimize:
-                _LOGGER.debug("Optimizing image with reduced colors")
-                # Reduce to 128 colors instead of 256 for smaller size
+            # Apply optimization based on mode
+            if optimize_mode == "esp32":
+                _LOGGER.debug("Applying ESP32 optimization (256 colors)")
+                img = img.convert("P", palette=Image.ADAPTIVE, colors=256)
+            elif optimize_mode == "standard":
+                _LOGGER.debug("Applying standard optimization (128 colors)")
                 img = img.convert("P", palette=Image.ADAPTIVE, colors=128)
-                # Additional quantization for better compression
                 img = img.quantize(colors=128, method=2)
             
             # Delete existing PNG if it exists
@@ -63,13 +64,18 @@ async def async_setup_services(hass: HomeAssistant) -> None:
             os.makedirs(os.path.dirname(output_path), exist_ok=True)
             
             _LOGGER.debug(f"Saving PNG image to {output_path}")
-            # Maximum compression settings
-            img.save(output_path, 
-                    "PNG", 
-                    optimize=True, 
-                    compress_level=9,
-                    bits=8,  # Reduce bit depth
-                    )
+            # Save with appropriate settings
+            save_options = {
+                "format": "PNG",
+                "optimize": True,
+                "compress_level": 9
+            }
+            
+            # Add bits option only for standard optimization
+            if optimize_mode == "standard":
+                save_options["bits"] = 8
+            
+            img.save(output_path, **save_options)
             
             if os.path.exists(output_path):
                 original_size = os.path.getsize(input_path)

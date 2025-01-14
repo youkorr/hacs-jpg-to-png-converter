@@ -1,9 +1,9 @@
 {
-    "entity": {
-      "light": {
-        "ambilight": {
-          "default": "/images/icon.png"
-        }
+  "entity": {
+    "image_processing": {
+      "jpg_to_png_converter": {
+        "default": "mdi:image-refresh"
+      }
     }
-}
+  }
 }

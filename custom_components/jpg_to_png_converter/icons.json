@@ -2,7 +2,7 @@
     "entity": {
       "light": {
         "ambilight": {
-          "default": "mdi:television-ambient-light"
+          "default": "/images/icon.png"
         }
     }
 }

@@ -8,5 +8,5 @@
   "version": "1.0.0",
   "config_flow": true,
   "iot_class": "local_polling",
-  "icon": "/images/icon.png" ,
+  "icon": "mdi:image-refresh"
 }

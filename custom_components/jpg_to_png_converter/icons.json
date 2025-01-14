@@ -2,7 +2,7 @@
   "entity": {
     "image_processing": {
       "jpg_to_png_converter": {
-        "default": "mdi:image-refresh"
+        "default": "https://github.com/youkorr/hacs-jpg-to-png-converter/blob/main/custom_components/jpg_to_png_converter/images/icon.png"
       }
     }
   }

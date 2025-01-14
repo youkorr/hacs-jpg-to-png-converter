@@ -5,7 +5,7 @@
   "dependencies": [],
   "codeowners": ["@youkorr"],
   "requirements": ["Pillow"],
-  "version": "1.4.0",
+  "version": "1.0.0",
   "config_flow": true,
   "iot_class": "local_polling",
 }

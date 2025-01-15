@@ -3,7 +3,7 @@
   "name": "JPG to PNG Converter",
   "documentation": "https://github.com/youkorr/hacs-jpg-to-png-converter",
   "dependencies": [],
-  "codeowners": ["@youkorr"],
+  "owners": ["@youkorr"],
   "requirements": ["Pillow"],
   "version": "1.0.0",
   "config_flow": true,

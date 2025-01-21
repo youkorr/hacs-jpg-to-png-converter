@@ -1,6 +1,6 @@
 {
   "name": "JPG to PNG Converter",
-  "icon": "icon.png",  // <-- Clé corrigée
+  "icon": "icon.png", 
   "render_readme": true,
   "domains": ["image_processing"],
   "homeassistant": "2023.1.0",

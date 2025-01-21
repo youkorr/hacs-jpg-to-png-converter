@@ -64,7 +64,7 @@ data:
 - `input_path`: Path to the input JPG file (required)
 - `output_path`: Path where the PNG file should be saved (optional)
 - `resolution`: Output resolution (optional, defaults to "320x240")
-  - Available options: "original", "320x240", "640x480", "800x600", "1280x720", "1920x1080"
+  - Available options: "original","100x100", "200x200", "320x240", "640x480", "800x600", "1280x720", "1920x1080"
 - `optimize_mode`: Optimization mode (optional, defaults to "none")
   - "none": No color optimization
   - "esp32": ESP32 mode with 256 colors (best for ESP32 displays)

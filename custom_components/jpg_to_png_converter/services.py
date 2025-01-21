@@ -7,6 +7,8 @@ from homeassistant.core import HomeAssistant, ServiceCall
 _LOGGER = logging.getLogger(__name__)
 
 RESOLUTIONS = {
+    "100x100": (100, 100),
+    "200x200": (200, 200),
     "320x240": (320, 240),
     "640x480": (640, 480),
     "800x600": (800, 600),

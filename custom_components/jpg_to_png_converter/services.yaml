@@ -24,6 +24,8 @@ convert:
         select:
           options:
             - "original"
+            - "100x100"
+            - "200x200"
             - "320x240"
             - "640x480"
             - "800x600"

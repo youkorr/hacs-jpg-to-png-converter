@@ -124,3 +124,4 @@ async def async_setup_services(hass: HomeAssistant) -> None:
         convert_jpg_to_png
     )
 
+

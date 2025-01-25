@@ -21,10 +21,9 @@ RESOLUTIONS = {
 
 async def async_setup_services(hass: HomeAssistant) -> None:
     async def convert_jpg_to_png(call: ServiceCall) -> None:
-        local_input_paths = call.data.get("local_input_path", [])
-        url_input_paths = call.data.get("url_input_path", [])
-
-        for input_path in local_input_paths:
+        # Handle local files
+        if "local_input_path" in call.data:
+            input_path = call.data["local_input_path"]
             output_path = call.data.get("output_path", None)
             resolution = call.data.get("resolution", "320x240")
             optimize_mode = call.data.get("optimize_mode", "none")
@@ -42,31 +41,47 @@ async def async_setup_services(hass: HomeAssistant) -> None:
             else:
                 raise Exception(f"Unsupported file type: {input_path}")
 
-            # Rest of the local file processing logic
+            # Process image based on resolution and optimization
+            if resolution != "original":
+                img = img.resize(RESOLUTIONS[resolution])
 
-        for input_path in url_input_paths:
+            # Save the processed image
+            img.save(output_path, optimize=(optimize_mode != "none"))
+
+        # Handle URL-based images
+        elif "url_input_path" in call.data:
+            input_url = call.data["url_input_path"]
             output_path = call.data.get("output_path", None)
             resolution = call.data.get("resolution", "320x240")
             optimize_mode = call.data.get("optimize_mode", "none")
 
             try:
-                _LOGGER.debug(f"Downloading image from URL: {input_path}")
-                response = requests.get(input_path)
+                _LOGGER.debug(f"Downloading image from URL: {input_url}")
+                response = requests.get(input_url)
                 response.raise_for_status()
                 img = Image.open(BytesIO(response.content))
 
                 if not output_path:
-                    url_filename = input_path.split('/')[-1]
+                    url_filename = input_url.split('/')[-1]
                     base_name = os.path.splitext(url_filename)[0]
                     output_path = os.path.join(hass.config.media_dir, f"{base_name}.png")
 
-                # Rest of the URL-based processing logic
+                # Process image based on resolution and optimization
+                if resolution != "original":
+                    img = img.resize(RESOLUTIONS[resolution])
+
+                # Save the processed image
+                img.save(output_path, optimize=(optimize_mode != "none"))
+
             except Exception as e:
-                _LOGGER.error(f"Error converting image: {str(e)}")
-                raise Exception(f"Error converting image: {str(e)}")
+                _LOGGER.error(f"Error converting image from URL: {str(e)}")
+                raise Exception(f"Error converting image from URL: {str(e)}")
+        else:
+            raise Exception("Either local_input_path or url_input_path must be provided")
 
     hass.services.async_register(
         "jpg_to_png_converter", 
         "convert", 
         convert_jpg_to_png
     )
+

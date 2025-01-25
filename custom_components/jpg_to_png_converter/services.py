@@ -1,10 +1,12 @@
 """Services for JPG to PNG Converter."""
 import os
+import requests
 from PIL import Image
 import logging
 from homeassistant.core import HomeAssistant, ServiceCall
+from io import BytesIO
 
-_LOGGER = logging.getLogger(__name__)  # Correction du nom de la variable
+_LOGGER = logging.getLogger(__name__)
 
 RESOLUTIONS = {
     "100x100": (100, 100),
@@ -22,9 +24,9 @@ async def async_setup_services(hass: HomeAssistant) -> None:
     
     async def convert_jpg_to_png(call: ServiceCall) -> None:
         """Handle the service call."""
-        input_paths = call.data.get("input_path")  # Modification pour supporter plusieurs chemins
+        input_paths = call.data.get("input_path")  # Support for multiple paths/URLs
         
-        # Assurez-vous que input_paths est une liste
+        # Ensure input_paths is a list
         if not isinstance(input_paths, list):
             input_paths = [input_paths]
         
@@ -33,16 +35,35 @@ async def async_setup_services(hass: HomeAssistant) -> None:
             resolution = call.data.get("resolution", "320x240")
             optimize_mode = call.data.get("optimize_mode", "none")
             
-            if not output_path:
-                output_path = os.path.splitext(input_path)[0] + ".png"
-                
             try:
-                # Check if input file exists
-                if not os.path.exists(input_path):
-                    raise Exception(f"Input file not found: {input_path}")
+                # Check if input is a URL
+                if input_path.startswith(('http://', 'https://')):
+                    _LOGGER.debug(f"Downloading image from URL: {input_path}")
+                    try:
+                        response = requests.get(input_path)
+                        response.raise_for_status()
+                        img = Image.open(BytesIO(response.content))
+                    except Exception as e:
+                        _LOGGER.error(f"Error downloading image from URL: {e}")
+                        raise Exception(f"Error downloading image from URL: {e}")
+                    
+                    # Generate default output filename for URL images
+                    if not output_path:
+                        url_filename = input_path.split('/')[-1]
+                        base_name = os.path.splitext(url_filename)[0]
+                        output_path = os.path.join(hass.config.media_dir, f"{base_name}.png")
                 
-                _LOGGER.debug(f"Opening image from {input_path}")
-                img = Image.open(input_path)
+                else:
+                    # Local file processing
+                    if not os.path.exists(input_path):
+                        raise Exception(f"Input file not found: {input_path}")
+                    
+                    _LOGGER.debug(f"Opening image from {input_path}")
+                    img = Image.open(input_path)
+                    
+                    # Default output path for local files
+                    if not output_path:
+                        output_path = os.path.splitext(input_path)[0] + ".png"
                 
                 # Convert to RGB first to ensure proper color handling
                 if img.mode != 'RGB':
@@ -51,7 +72,7 @@ async def async_setup_services(hass: HomeAssistant) -> None:
                 # Resize first if needed
                 if resolution != "original" and resolution in RESOLUTIONS:
                     target_size = RESOLUTIONS[resolution]
-                    img = img.resize(target_size, Image.Resampling.BILINEAR)  # Changed to BILINEAR for speed
+                    img = img.resize(target_size, Image.Resampling.BILINEAR)
                     _LOGGER.debug(f"Resizing image to {resolution}")
                 
                 # Apply optimization based on mode
@@ -60,7 +81,6 @@ async def async_setup_services(hass: HomeAssistant) -> None:
                     img = img.convert("P", palette=Image.ADAPTIVE, colors=256)
                 elif optimize_mode == "standard":
                     _LOGGER.debug("Applying standard optimization (128 colors)")
-                    # Simplified optimization for speed
                     img = img.convert("P", palette=Image.ADAPTIVE, colors=128)
                 
                 # Delete existing PNG if it exists
@@ -76,16 +96,21 @@ async def async_setup_services(hass: HomeAssistant) -> None:
                 save_options = {
                     "format": "PNG",
                     "optimize": True,
-                    "compress_level": 6  # Reduced from 9 to 6 for better speed/size balance
+                    "compress_level": 6
                 }
                 
                 img.save(output_path, **save_options)
                 
                 if os.path.exists(output_path):
-                    original_size = os.path.getsize(input_path)
+                    # Log file size for URL and local images
+                    try:
+                        original_size = response.headers.get('Content-Length', 0) if input_path.startswith(('http://', 'https://')) else os.path.getsize(input_path)
+                    except:
+                        original_size = 0
+                    
                     converted_size = os.path.getsize(output_path)
                     _LOGGER.info(f"Successfully converted {input_path} to {output_path}")
-                    _LOGGER.info(f"File sizes - Original: {original_size/1024:.1f}KB, Converted: {converted_size/1024:.1f}KB")
+                    _LOGGER.info(f"File sizes - Original: {float(original_size)/1024:.1f}KB, Converted: {converted_size/1024:.1f}KB")
                 else:
                     raise Exception(f"PNG file was not saved: {output_path}")
                 

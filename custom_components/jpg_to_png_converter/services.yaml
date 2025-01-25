@@ -3,10 +3,16 @@ convert:
   description: "Convert a JPG image to PNG format. Note: ESP32 mode uses 256 colors, standard optimization uses 128 colors for smaller size"
   target: {}
   fields:
-    input_path:
-      description: Path to the input JPG file
+    local_input_path:
+      description: Path to the local input JPG, JPEG, or WEBP file
       example: "/config/www/image.jpg"
-      required: true
+      required: false
+      selector:
+        text: {}
+    url_input_path:
+      description: URL of the input JPG, JPEG, or WEBP file
+      example: "https://example.com/image.jpg"
+      required: false
       selector:
         text: {}
     output_path:

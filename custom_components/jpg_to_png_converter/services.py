@@ -1,5 +1,3 @@
-ntitled
-
 """Services for JPG to PNG Converter."""
 import os
 import requests
@@ -125,6 +123,3 @@ async def async_setup_services(hass: HomeAssistant) -> None:
         "convert", 
         convert_jpg_to_png
     )
-
-
-

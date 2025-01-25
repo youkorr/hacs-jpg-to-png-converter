@@ -57,12 +57,23 @@ async def async_setup_services(hass: HomeAssistant) -> None:
 
             try:
                 _LOGGER.debug(f"Downloading image from URL: {input_url}")
-                response = requests.get(input_url)
+                headers = {
+                    "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/58.0.3029.110 Safari/537.3"
+                }
+                response = requests.get(input_url, headers=headers, timeout=10)
                 response.raise_for_status()
+
+                # Open image with PIL
                 img = Image.open(BytesIO(response.content))
 
+                # Convert to RGB if necessary
+                if img.mode in ('RGBA', 'LA'):
+                    background = Image.new('RGB', img.size, (255, 255, 255))
+                    background.paste(img, mask=img.split()[-1])
+                    img = background
+
                 if not output_path:
-                    url_filename = input_url.split('/')[-1]
+                    url_filename = input_url.split('/')[-1].split('?')[0]
                     base_name = os.path.splitext(url_filename)[0]
                     output_path = os.path.join(hass.config.media_dir, f"{base_name}.png")
 

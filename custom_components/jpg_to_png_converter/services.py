@@ -24,10 +24,16 @@ async def async_setup_services(hass: HomeAssistant) -> None:
         local_input_paths = call.data.get("local_input_path", [])
         url_input_paths = call.data.get("url_input_path", [])
         
+        # Ensure input paths are lists
+        if isinstance(local_input_paths, str):
+            local_input_paths = [local_input_paths]
+        if isinstance(url_input_paths, str):
+            url_input_paths = [url_input_paths]
+        
         # Process local files
         for input_path in local_input_paths:
             output_path = call.data.get("output_path")
-            resolution = call.data.get("resolution", "320x240")
+            resolution = call.data.get("resolution", "original")
             optimize_mode = call.data.get("optimize_mode", "none")
             
             if input_path.lower().endswith(('.jpg', '.jpeg', '.webp')):
@@ -39,9 +45,18 @@ async def async_setup_services(hass: HomeAssistant) -> None:
                     if resolution != "original" and RESOLUTIONS.get(resolution):
                         img = img.resize(RESOLUTIONS[resolution], Image.LANCZOS)
                     
-                    # Determine output path if not provided
+                    # Generate output path if not provided
                     if not output_path:
                         output_path = os.path.splitext(input_path)[0] + ".png"
+                    
+                    # Optimize based on mode
+                    if optimize_mode == "esp32":
+                        img = img.convert('P', palette=Image.ADAPTIVE, colors=256)
+                    elif optimize_mode == "standard":
+                        img = img.convert('P', palette=Image.ADAPTIVE, colors=128)
+                    
+                    # Ensure directory exists
+                    os.makedirs(os.path.dirname(output_path), exist_ok=True)
                     
                     # Save the image as PNG
                     img.save(output_path, "PNG")
@@ -54,7 +69,7 @@ async def async_setup_services(hass: HomeAssistant) -> None:
         # Process URL-based files
         for input_path in url_input_paths:
             output_path = call.data.get("output_path")
-            resolution = call.data.get("resolution", "320x240")
+            resolution = call.data.get("resolution", "original")
             optimize_mode = call.data.get("optimize_mode", "none")
             
             try:
@@ -70,11 +85,20 @@ async def async_setup_services(hass: HomeAssistant) -> None:
                 if resolution != "original" and RESOLUTIONS.get(resolution):
                     img = img.resize(RESOLUTIONS[resolution], Image.LANCZOS)
                 
-                # Determine output path if not provided
+                # Generate output path if not provided
                 if not output_path:
                     url_filename = input_path.split('/')[-1]
                     base_name = os.path.splitext(url_filename)[0]
                     output_path = os.path.join(hass.config.media_dir, f"{base_name}.png")
+                
+                # Optimize based on mode
+                if optimize_mode == "esp32":
+                    img = img.convert('P', palette=Image.ADAPTIVE, colors=256)
+                elif optimize_mode == "standard":
+                    img = img.convert('P', palette=Image.ADAPTIVE, colors=128)
+                
+                # Ensure directory exists
+                os.makedirs(os.path.dirname(output_path), exist_ok=True)
                 
                 # Save the image as PNG
                 img.save(output_path, "PNG")
@@ -90,4 +114,3 @@ async def async_setup_services(hass: HomeAssistant) -> None:
         "convert", 
         convert_jpg_to_png
     )
-

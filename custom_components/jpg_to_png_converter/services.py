@@ -1,7 +1,7 @@
 """Services for JPG to PNG Converter."""
 import os
 import tempfile
-import requests
+import aiohttp
 from PIL import Image
 import logging
 from homeassistant.core import HomeAssistant, ServiceCall
@@ -17,16 +17,20 @@ RESOLUTIONS = {
     "original": None
 }
 
-def download_image(url: str) -> str:
-    """Download image from URL using requests and return temporary file path."""
+async def download_image(url: str) -> str:
+    """Download image from URL using aiohttp and return temporary file path."""
     try:
-        response = requests.get(url, stream=True, timeout=10)
-        response.raise_for_status()
-        
-        with tempfile.NamedTemporaryFile(delete=False, suffix='.tmp') as tmp_file:
-            for chunk in response.iter_content(chunk_size=8192):
-                tmp_file.write(chunk)
-            return tmp_file.name
+        async with aiohttp.ClientSession() as session:
+            async with session.get(url, timeout=10) as response:
+                response.raise_for_status()
+                
+                with tempfile.NamedTemporaryFile(delete=False, suffix='.tmp') as tmp_file:
+                    while True:
+                        chunk = await response.content.read(8192)
+                        if not chunk:
+                            break
+                        tmp_file.write(chunk)
+                    return tmp_file.name
     except Exception as e:
         _LOGGER.error(f"Failed to download image: {str(e)}")
         raise Exception(f"Failed to download image: {str(e)}")
@@ -104,7 +108,7 @@ async def async_setup_services(hass: HomeAssistant) -> None:
         temp_file = None
         try:
             if url_input_path:
-                temp_file = download_image(url_input_path)
+                temp_file = await download_image(url_input_path)
                 input_path = temp_file
             else:
                 input_path = local_input_path
@@ -112,7 +116,9 @@ async def async_setup_services(hass: HomeAssistant) -> None:
                     _LOGGER.error(f"Input file not found: {input_path}")
                     raise FileNotFoundError(f"Input file not found: {input_path}")
             
-            process_image(input_path, output_path, resolution, optimize_mode)
+            await hass.async_add_executor_job(
+                process_image, input_path, output_path, resolution, optimize_mode
+            )
             
         except FileNotFoundError as e:
             _LOGGER.error(f"File not found error: {str(e)}")

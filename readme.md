@@ -1,22 +1,25 @@
 <p align="center">
-  <img src="https://raw.githubusercontent.com/youkorr/hacs-jpg-to-png-converter/main/custom_components/jpg_to_png_converter/images/logo.png" alt="JPG to PNG Converter" width="400"/>
+  <img src="https://raw.githubusercontent.com/youkorr/hacs-jpg-to-png-converter/main/custom_components/jpg_to_png_converter/images/logo.png" alt="JPG/WebP to PNG Converter" width="400"/>
 </p>
 
-# JPG to PNG Converter for Home Assistant
+# JPG/WebP to PNG Converter for Home Assistant
 
-A Home Assistant integration that converts JPG images to PNG format with customizable resolutions and optimization for ESP32 devices.
+A Home Assistant integration that converts JPG/JPEG/WebP images to PNG format with customizable resolutions and optimization modes.
 
 ## Features
-- Convert JPG images to PNG format
+- Convert JPG/JPEG and WebP images to PNG format
+- Support for local files and remote URLs
 - Multiple resolution options
 - ESP32 optimization mode (256 colors)
 - Standard optimization mode (128 colors for smaller file size)
 - Automatic output directory creation
 - Optimized PNG output
+- Asynchronous downloads for remote URLs
 
 ## Prerequisites
 The integration will automatically install required dependencies:
 - Pillow (Python Imaging Library)
+- aiohttp (for asynchronous HTTP requests)
 
 ## Compatible Devices
 - ESP32 (optimized with 256 colors mode)
@@ -28,7 +31,7 @@ The integration will automatically install required dependencies:
 ### Through Home Assistant UI
 1. Go to Settings > Devices & Services
 2. Click "Add Integration"
-3. Search for "JPG to PNG"
+3. Search for "JPG/WebP to PNG"
 4. Follow the configuration steps
 
 ### HACS Installation
@@ -43,7 +46,7 @@ The integration will automatically install required dependencies:
 9. Restart Home Assistant
 10. Go to Settings > Devices & Services
 11. Click "Add Integration"
-12. Search for "JPG to PNG"
+12. Search for "JPG/WebP to PNG"
 13. Follow the configuration steps
 
 ## Usage
@@ -54,44 +57,77 @@ The integration provides a service `jpg_to_png_converter.convert` with the follo
 ```yaml
 service: jpg_to_png_converter.convert
 data:
-  input_path: "/config/www/image.jpg"
-  output_path: "/config/www/image.png"
-  resolution: "original"
-  optimize_mode: "esp32"  # Options: "none", "esp32", "standard"
+  local_input_path: "/config/www/image.jpg"  # For local files
+  url_input_path: "https://example.com/image.webp"  # For remote URLs
+  output_path: "/config/www/converted.png"
+  resolution: "original"  # Options: "original", "320x240", "640x480", etc.
+  optimize_mode: "standard"  # Options: "none", "esp32", "standard"
 ```
 
-### Parameters
-- `input_path`: Path to the input JPG file (required)
-- `output_path`: Path where the PNG file should be saved (optional)
-- `resolution`: Output resolution (optional, defaults to "320x240")
-  - Available options: "original", "100x100", "200x200", "320x240", "640x480", "800x600", "1280x720", "1920x1080"
-- `optimize_mode`: Optimization mode (optional, defaults to "none")
-  - "none": No color optimization
-  - "esp32": ESP32 mode with 256 colors (best for ESP32 displays)
-  - "standard": 128 colors optimization for smaller file size
+### Examples
+
+#### Local JPG/JPEG Conversion
+```yaml
+service: jpg_to_png_converter.convert
+data:
+  local_input_path: "/config/www/image.jpg"
+  output_path: "/config/www/converted.png"
+  resolution: "original"
+  optimize_mode: "none"
+```
+
+#### Local WebP Conversion
+```yaml
+service: jpg_to_png_converter.convert
+data:
+  local_input_path: "/config/www/image.webp"
+  output_path: "/config/www/converted.png"
+  resolution: "640x480"
+  optimize_mode: "standard"
+```
+
+#### Remote JPG/JPEG Conversion
+```yaml
+service: jpg_to_png_converter.convert
+data:
+  url_input_path: "https://example.com/image.jpg"
+  output_path: "/config/www/converted.png"
+  resolution: "1920x1080"
+  optimize_mode: "esp32"
+```
+
+#### Remote WebP Conversion
+```yaml
+service: jpg_to_png_converter.convert
+data:
+  url_input_path: "https://example.com/image.webp"
+  output_path: "/config/www/converted.png"
+  resolution: "original"
+  optimize_mode: "standard"
+```
 
 ### Example Automations
 
-#### Convert for ESP32 Display
+#### Convert Local JPG for ESP32 Display
 ```yaml
 automation:
-  - alias: "Convert for ESP32 Display"
+  - alias: "Convert Local JPG for ESP32 Display"
     trigger:
       - platform: time_pattern
         minutes: "/5"
     action:
       - service: jpg_to_png_converter.convert
         data:
-          input_path: "/config/www/source.jpg"
+          local_input_path: "/config/www/source.jpg"
           output_path: "/config/www/esp32/display.png"
           resolution: "original"
-          optimize_mode: "esp32"  # Use ESP32 mode for 256 colors
+          optimize_mode: "esp32"
 ```
 
-#### Convert with Size Optimization
+#### Convert Remote WebP with Size Optimization
 ```yaml
 automation:
-  - alias: "Convert with Size Optimization"
+  - alias: "Convert Remote WebP with Size Optimization"
     trigger:
       - platform: state
         entity_id: binary_sensor.camera_motion
@@ -99,10 +135,10 @@ automation:
     action:
       - service: jpg_to_png_converter.convert
         data:
-          input_path: "/config/www/camera_image.jpg"
+          url_input_path: "https://example.com/camera_image.webp"
           output_path: "/config/www/converted/image.png"
           resolution: "original"
-          optimize_mode: "standard"  # Use standard mode for smaller file size
+          optimize_mode: "standard"
 ```
 
 ## Optimization Modes

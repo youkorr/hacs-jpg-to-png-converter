@@ -1,12 +1,30 @@
 {
   "domain": "jpg_to_png_converter",
-  "name": "JPG to PNG Converter",
+  "name": "JPG/WebP to PNG Converter",
   "documentation": "https://github.com/youkorr/hacs-jpg-to-png-converter",
   "dependencies": [],
   "codeowners": ["@youkorr"],
-  "requirements": ["Pillow"],
-  "version": "1.0.0",
+  "requirements": [
+    "Pillow>=9.0.0",
+    "urllib3>=1.26.0",
+    "imageio>=2.9.0",
+    "imageio[ffmpeg]>=2.9.0"
+  ],
+  "version": "1.2.0",
   "config_flow": true,
   "iot_class": "local_polling",
-  "icon": "mdi:image-refresh"
+  "icon": "mdi:image-refresh",
+  "issue_tracker": "https://github.com/youkorr/hacs-jpg-to-png-converter/issues",
+  "integration_type": "service",
+  "supported_formats": [
+    "jpg",
+    "jpeg",
+    "webp"
+  ],
+  "supported_features": [
+    "local_conversion",
+    "remote_conversion",
+    "resolution_scaling",
+    "optimization_modes"
+  ]
 }

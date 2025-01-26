@@ -47,9 +47,14 @@ async def async_setup_services(hass: HomeAssistant) -> None:
             _LOGGER.debug(f"Opening image from {input_path}")
             img = Image.open(input_path)
             
-            # Convert to RGB first to ensure proper color handling
-            if img.mode != 'RGB':
+            # Handle WebP images specifically
+            if img.format == 'WEBP':
+                # Convert WebP to RGB directly
                 img = img.convert('RGB')
+            else:
+                # For other formats, convert to RGB if needed
+                if img.mode != 'RGB':
+                    img = img.convert('RGB')
             
             # Resize first if needed
             if resolution != "original" and resolution in RESOLUTIONS:

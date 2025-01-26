@@ -1,0 +1,47 @@
+# Service jpg_to_png_converter.convert
+convert:
+  description: "Convert a JPG image to PNG format. Note: ESP32 mode uses 256 colors, standard optimization uses 128 colors for smaller size"
+  target: {}
+  fields:
+    input_path:
+      description: Path to the input JPG file
+      example: "/config/www/image.jpg"
+      required: true
+      selector:
+        text: {}
+    output_path:
+      description: Path where the PNG file should be saved
+      example: "/config/www/image.png"
+      required: false
+      selector:
+        text: {}
+    resolution:
+      description: "Select output resolution (use 'original' with ESP32 mode for best quality)"
+      example: "original"
+      default: "original"
+      required: false
+      selector:
+        select:
+          options:
+            - "original"
+            - "100x100"
+            - "200x200"
+            - "320x240"
+            - "640x480"
+            - "800x600"
+            - "1280x720"
+            - "1920x1080"
+    optimize_mode:
+      name: Optimization Mode
+      description: "Choose optimization mode (ESP32: 256 colors, Standard: 128 colors for smaller size)"
+      required: false
+      default: "none"
+      selector:
+        select:
+          options:
+            - label: "None"
+              value: "none"
+            - label: "ESP32 Mode (256 colors)"
+              value: "esp32"
+            - label: "Standard Optimization (128 colors)"
+              value: "standard"

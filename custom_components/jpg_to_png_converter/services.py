@@ -1,7 +1,7 @@
 """Services for JPG to PNG Converter."""
 import os
-import urllib.request
 import tempfile
+import requests
 from PIL import Image
 import logging
 from homeassistant.core import HomeAssistant, ServiceCall
@@ -18,11 +18,14 @@ RESOLUTIONS = {
 }
 
 def download_image(url: str) -> str:
-    """Download image from URL and return temporary file path."""
+    """Download image from URL using requests and return temporary file path."""
     try:
+        response = requests.get(url, stream=True, timeout=10)
+        response.raise_for_status()
+        
         with tempfile.NamedTemporaryFile(delete=False, suffix='.tmp') as tmp_file:
-            _LOGGER.debug(f"Downloading image from {url}")
-            urllib.request.urlretrieve(url, tmp_file.name)
+            for chunk in response.iter_content(chunk_size=8192):
+                tmp_file.write(chunk)
             return tmp_file.name
     except Exception as e:
         _LOGGER.error(f"Failed to download image: {str(e)}")
@@ -33,10 +36,8 @@ def process_image(input_path: str, output_path: str, resolution: str, optimize_m
     try:
         _LOGGER.debug(f"Opening image from {input_path}")
         with Image.open(input_path) as img:
-            # Handle WebP images specifically
-            if img.format == 'WEBP':
-                img = img.convert('RGB')
-            elif img.mode != 'RGB':
+            # Convert to RGB if needed
+            if img.format in ['WEBP', 'JPEG', 'JPG']:
                 img = img.convert('RGB')
             
             # Resize if needed

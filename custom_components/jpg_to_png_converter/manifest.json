@@ -4,7 +4,7 @@
   "documentation": "https://github.com/youkorr/hacs-jpg-to-png-converter",
   "dependencies": [],
   "owners": ["@youkorr"],
-  "requirements": ["Pillow", "requests"],
+  "requirements": ["Pillow"],
   "version": "1.0.1",
   "config_flow": true,
   "iot_class": "local_polling",

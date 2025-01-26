@@ -17,52 +17,35 @@ RESOLUTIONS = {
     "original": None
 }
 
-async def async_setup_services(hass: HomeAssistant) -> None:
-    """Set up services for JPG to PNG Converter."""
-    
-    async def convert_jpg_to_png(call: ServiceCall) -> None:
-        """Handle the service call."""
-        local_input_path = call.data.get("local_input_path")
-        url_input_path = call.data.get("url_input_path")
-        output_path = call.data.get("output_path")
-        resolution = call.data.get("resolution", "320x240")
-        optimize_mode = call.data.get("optimize_mode", "none")
-        
-        if not local_input_path and not url_input_path:
-            raise Exception("Either local_input_path or url_input_path must be provided")
-            
-        try:
-            # Handle URL input
-            if url_input_path:
-                with tempfile.NamedTemporaryFile(delete=False) as tmp_file:
-                    _LOGGER.debug(f"Downloading image from {url_input_path}")
-                    urllib.request.urlretrieve(url_input_path, tmp_file.name)
-                    input_path = tmp_file.name
-            else:
-                # Handle local input
-                input_path = local_input_path
-                if not os.path.exists(input_path):
-                    raise Exception(f"Input file not found: {input_path}")
-            
-            _LOGGER.debug(f"Opening image from {input_path}")
-            img = Image.open(input_path)
-            
+def download_image(url: str) -> str:
+    """Download image from URL and return temporary file path."""
+    try:
+        with tempfile.NamedTemporaryFile(delete=False, suffix='.tmp') as tmp_file:
+            _LOGGER.debug(f"Downloading image from {url}")
+            urllib.request.urlretrieve(url, tmp_file.name)
+            return tmp_file.name
+    except Exception as e:
+        _LOGGER.error(f"Failed to download image: {str(e)}")
+        raise Exception(f"Failed to download image: {str(e)}")
+
+def process_image(input_path: str, output_path: str, resolution: str, optimize_mode: str) -> None:
+    """Process and convert image to PNG."""
+    try:
+        _LOGGER.debug(f"Opening image from {input_path}")
+        with Image.open(input_path) as img:
             # Handle WebP images specifically
             if img.format == 'WEBP':
-                # Convert WebP to RGB directly
                 img = img.convert('RGB')
-            else:
-                # For other formats, convert to RGB if needed
-                if img.mode != 'RGB':
-                    img = img.convert('RGB')
+            elif img.mode != 'RGB':
+                img = img.convert('RGB')
             
-            # Resize first if needed
+            # Resize if needed
             if resolution != "original" and resolution in RESOLUTIONS:
                 target_size = RESOLUTIONS[resolution]
                 img = img.resize(target_size, Image.Resampling.LANCZOS)
                 _LOGGER.debug(f"Resizing image to {resolution}")
             
-            # Apply optimization based on mode
+            # Apply optimization
             if optimize_mode == "esp32":
                 _LOGGER.debug("Applying ESP32 optimization (256 colors)")
                 img = img.convert("P", palette=Image.ADAPTIVE, colors=256)
@@ -71,15 +54,10 @@ async def async_setup_services(hass: HomeAssistant) -> None:
                 img = img.convert("P", palette=Image.ADAPTIVE, colors=128)
                 img = img.quantize(colors=128, method=2)
             
-            # Delete existing PNG if it exists
-            if os.path.exists(output_path):
-                _LOGGER.debug(f"Deleting old PNG file: {output_path}")
-                os.remove(output_path)
-            
-            # Create output directory if it doesn't exist
+            # Create output directory if needed
             os.makedirs(os.path.dirname(output_path), exist_ok=True)
             
-            _LOGGER.debug(f"Saving PNG image to {output_path}")
+            # Save with options
             save_options = {
                 "format": "PNG",
                 "optimize": True,
@@ -91,27 +69,53 @@ async def async_setup_services(hass: HomeAssistant) -> None:
             
             img.save(output_path, **save_options)
             
-            if os.path.exists(output_path):
-                original_size = os.path.getsize(input_path)
-                converted_size = os.path.getsize(output_path)
-                _LOGGER.info(f"Successfully converted {input_path} to {output_path}")
-                _LOGGER.info(f"File sizes - Original: {original_size/1024:.1f}KB, Converted: {converted_size/1024:.1f}KB")
-            else:
-                raise Exception(f"PNG file was not saved: {output_path}")
+            if not os.path.exists(output_path):
+                raise Exception(f"Failed to save PNG file: {output_path}")
             
-        except Exception as e:
-            _LOGGER.error(f"Error converting image: {str(e)}")
-            raise Exception(f"Error converting image: {str(e)}")
+            original_size = os.path.getsize(input_path)
+            converted_size = os.path.getsize(output_path)
+            _LOGGER.info(f"Successfully converted {input_path} to {output_path}")
+            _LOGGER.info(f"File sizes - Original: {original_size/1024:.1f}KB, Converted: {converted_size/1024:.1f}KB")
+            
+    except Exception as e:
+        _LOGGER.error(f"Error processing image: {str(e)}")
+        raise Exception(f"Error processing image: {str(e)}")
+
+async def async_setup_services(hass: HomeAssistant) -> None:
+    """Set up services for JPG to PNG Converter."""
+    
+    async def convert_image(call: ServiceCall) -> None:
+        """Handle the service call."""
+        local_input_path = call.data.get("local_input_path")
+        url_input_path = call.data.get("url_input_path")
+        output_path = call.data.get("output_path")
+        resolution = call.data.get("resolution", "320x240")
+        optimize_mode = call.data.get("optimize_mode", "none")
+        
+        if not local_input_path and not url_input_path:
+            raise Exception("Either local_input_path or url_input_path must be provided")
+        
+        temp_file = None
+        try:
+            if url_input_path:
+                temp_file = download_image(url_input_path)
+                input_path = temp_file
+            else:
+                input_path = local_input_path
+                if not os.path.exists(input_path):
+                    raise Exception(f"Input file not found: {input_path}")
+            
+            process_image(input_path, output_path, resolution, optimize_mode)
+            
         finally:
-            # Clean up temporary file if it exists
-            if url_input_path and 'tmp_file' in locals():
+            if temp_file and os.path.exists(temp_file):
                 try:
-                    os.unlink(tmp_file.name)
-                except:
-                    pass
+                    os.unlink(temp_file)
+                except Exception as e:
+                    _LOGGER.warning(f"Failed to delete temporary file: {str(e)}")
 
     hass.services.async_register(
         "jpg_to_png_converter", 
         "convert", 
-        convert_jpg_to_png
+        convert_image
     )

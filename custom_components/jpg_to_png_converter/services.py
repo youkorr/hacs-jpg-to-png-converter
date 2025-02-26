@@ -55,38 +55,36 @@ def process_image(input_path: str, output_path: str, resolution: str, optimize_m
                 
                 # Handling zoom mode to preserve aspect ratio
                 if zoom_mode == "zoom":
+                    # Calculate new dimensions while maintaining aspect ratio
                     original_width, original_height = img.size
                     target_width, target_height = target_size
-                    
-                    # Calculate aspect ratios
                     original_ratio = original_width / original_height
                     target_ratio = target_width / target_height
                     
-                    # Determine dimensions to maintain aspect ratio
                     if original_ratio > target_ratio:
-                        # Original is wider than target
+                        # Original is wider
                         new_height = target_height
                         new_width = int(new_height * original_ratio)
                     else:
-                        # Original is taller than target
+                        # Original is taller
                         new_width = target_width
                         new_height = int(new_width / original_ratio)
                     
-                    # Resize while maintaining aspect ratio
+                    # Resize to new dimensions
                     img = img.resize((new_width, new_height), Image.Resampling.LANCZOS)
                     
-                    # Create a new image with target size and paste resized image centered
+                    # Create canvas with target size and paste resized image centered
                     new_img = Image.new('RGB', target_size, (0, 0, 0))
                     paste_x = (target_width - new_width) // 2
                     paste_y = (target_height - new_height) // 2
                     new_img.paste(img, (paste_x, paste_y))
                     img = new_img
                     
-                    _LOGGER.debug(f"Resizing image with zoom mode to {resolution} (aspect ratio preserved)")
+                    _LOGGER.debug(f"Applied zoom mode with preserved aspect ratio")
                 else:
-                    # Standard resize (fit mode)
+                    # Standard stretch resize
                     img = img.resize(target_size, Image.Resampling.LANCZOS)
-                    _LOGGER.debug(f"Resizing image to {resolution}")
+                    _LOGGER.debug(f"Resized image to {resolution}")
             
             # Apply optimization
             if optimize_mode == "esp32":
@@ -112,13 +110,9 @@ def process_image(input_path: str, output_path: str, resolution: str, optimize_m
             
             img.save(output_path, **save_options)
             
-            if not os.path.exists(output_path):
-                raise Exception(f"Failed to save PNG file: {output_path}")
-            
             original_size = os.path.getsize(input_path)
             converted_size = os.path.getsize(output_path)
-            _LOGGER.info(f"Successfully converted {input_path} to {output_path}")
-            _LOGGER.info(f"File sizes - Original: {original_size/1024:.1f}KB, Converted: {converted_size/1024:.1f}KB")
+            _LOGGER.info(f"Converted {input_path} to {output_path}. Original: {original_size/1024:.1f}KB, Converted: {converted_size/1024:.1f}KB")
             
     except Exception as e:
         _LOGGER.error(f"Error processing image: {str(e)}")

@@ -35,7 +35,7 @@ async def download_image(url: str) -> str:
         _LOGGER.error(f"Failed to download image: {str(e)}")
         raise Exception(f"Failed to download image: {str(e)}")
 
-def process_image(input_path: str, output_path: str, resolution: str, optimize_mode: str) -> None:
+def process_image(input_path: str, output_path: str, resolution: str, optimize_mode: str, zoom_mode: str = "fit") -> None:
     """Process and convert image to PNG."""
     try:
         _LOGGER.debug(f"Opening image from {input_path}")
@@ -52,8 +52,41 @@ def process_image(input_path: str, output_path: str, resolution: str, optimize_m
             # Resize if needed
             if resolution != "original" and resolution in RESOLUTIONS:
                 target_size = RESOLUTIONS[resolution]
-                img = img.resize(target_size, Image.Resampling.LANCZOS)
-                _LOGGER.debug(f"Resizing image to {resolution}")
+                
+                # Handling zoom mode to preserve aspect ratio
+                if zoom_mode == "zoom":
+                    original_width, original_height = img.size
+                    target_width, target_height = target_size
+                    
+                    # Calculate aspect ratios
+                    original_ratio = original_width / original_height
+                    target_ratio = target_width / target_height
+                    
+                    # Determine dimensions to maintain aspect ratio
+                    if original_ratio > target_ratio:
+                        # Original is wider than target
+                        new_height = target_height
+                        new_width = int(new_height * original_ratio)
+                    else:
+                        # Original is taller than target
+                        new_width = target_width
+                        new_height = int(new_width / original_ratio)
+                    
+                    # Resize while maintaining aspect ratio
+                    img = img.resize((new_width, new_height), Image.Resampling.LANCZOS)
+                    
+                    # Create a new image with target size and paste resized image centered
+                    new_img = Image.new('RGB', target_size, (0, 0, 0))
+                    paste_x = (target_width - new_width) // 2
+                    paste_y = (target_height - new_height) // 2
+                    new_img.paste(img, (paste_x, paste_y))
+                    img = new_img
+                    
+                    _LOGGER.debug(f"Resizing image with zoom mode to {resolution} (aspect ratio preserved)")
+                else:
+                    # Standard resize (fit mode)
+                    img = img.resize(target_size, Image.Resampling.LANCZOS)
+                    _LOGGER.debug(f"Resizing image to {resolution}")
             
             # Apply optimization
             if optimize_mode == "esp32":
@@ -101,6 +134,7 @@ async def async_setup_services(hass: HomeAssistant) -> None:
         output_path = call.data.get("output_path")
         resolution = call.data.get("resolution", "320x240")
         optimize_mode = call.data.get("optimize_mode", "none")
+        zoom_mode = call.data.get("zoom_mode", "fit")
         
         if not local_input_path and not url_input_path:
             raise Exception("Either local_input_path or url_input_path must be provided")
@@ -117,7 +151,7 @@ async def async_setup_services(hass: HomeAssistant) -> None:
                     raise FileNotFoundError(f"Input file not found: {input_path}")
             
             await hass.async_add_executor_job(
-                process_image, input_path, output_path, resolution, optimize_mode
+                process_image, input_path, output_path, resolution, optimize_mode, zoom_mode
             )
             
         except FileNotFoundError as e:

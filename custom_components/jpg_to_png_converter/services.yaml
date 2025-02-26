@@ -35,18 +35,13 @@ convert:
             - "800x600"
             - "1280x720"
             - "1920x1080"
-    zoom_mode:
-      name: Zoom Mode
-      description: "Mode de redimensionnement (zoom conserve les proportions)"
+    custom_resolution:
+      description: "Custom resolution in WIDTHxHEIGHT format (e.g. 1024x768)"
+      example: "1024x768"
       required: false
-      default: "fit"
       selector:
-        select:
-          options:
-            - label: "Adapter (étirement)"
-              value: "fit"
-            - label: "Zoom (conserve les proportions)"
-              value: "zoom"
+        text:
+          placeholder: "WIDTHxHEIGHT"
     optimize_mode:
       name: Optimization Mode
       description: "Choose optimization mode"

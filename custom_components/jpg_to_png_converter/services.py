@@ -2,6 +2,7 @@
 import os
 import tempfile
 import aiohttp
+import re
 from PIL import Image
 import logging
 from homeassistant.core import HomeAssistant, ServiceCall
@@ -16,6 +17,16 @@ RESOLUTIONS = {
     "1920x1080": (1920, 1080),
     "original": None
 }
+
+def parse_custom_resolution(resolution_str: str) -> tuple:
+    """Parse custom resolution string in format WIDTHxHEIGHT."""
+    pattern = r'^(\d+)x(\d+)$'
+    match = re.match(pattern, resolution_str)
+    if match:
+        width = int(match.group(1))
+        height = int(match.group(2))
+        return (width, height)
+    return None
 
 async def download_image(url: str) -> str:
     """Download image from URL using aiohttp and return temporary file path."""
@@ -35,7 +46,7 @@ async def download_image(url: str) -> str:
         _LOGGER.error(f"Failed to download image: {str(e)}")
         raise Exception(f"Failed to download image: {str(e)}")
 
-def process_image(input_path: str, output_path: str, resolution: str, optimize_mode: str, zoom_mode: str = "fit") -> None:
+def process_image(input_path: str, output_path: str, resolution: str, optimize_mode: str) -> None:
     """Process and convert image to PNG."""
     try:
         _LOGGER.debug(f"Opening image from {input_path}")
@@ -50,41 +61,19 @@ def process_image(input_path: str, output_path: str, resolution: str, optimize_m
                 img = img.convert('RGB')
             
             # Resize if needed
-            if resolution != "original" and resolution in RESOLUTIONS:
-                target_size = RESOLUTIONS[resolution]
-                
-                # Handling zoom mode to preserve aspect ratio
-                if zoom_mode == "zoom":
-                    # Calculate new dimensions while maintaining aspect ratio
-                    original_width, original_height = img.size
-                    target_width, target_height = target_size
-                    original_ratio = original_width / original_height
-                    target_ratio = target_width / target_height
-                    
-                    if original_ratio > target_ratio:
-                        # Original is wider
-                        new_height = target_height
-                        new_width = int(new_height * original_ratio)
-                    else:
-                        # Original is taller
-                        new_width = target_width
-                        new_height = int(new_width / original_ratio)
-                    
-                    # Resize to new dimensions
-                    img = img.resize((new_width, new_height), Image.Resampling.LANCZOS)
-                    
-                    # Create canvas with target size and paste resized image centered
-                    new_img = Image.new('RGB', target_size, (0, 0, 0))
-                    paste_x = (target_width - new_width) // 2
-                    paste_y = (target_height - new_height) // 2
-                    new_img.paste(img, (paste_x, paste_y))
-                    img = new_img
-                    
-                    _LOGGER.debug(f"Applied zoom mode with preserved aspect ratio")
+            if resolution != "original":
+                # Check if it's a predefined resolution
+                if resolution in RESOLUTIONS:
+                    target_size = RESOLUTIONS[resolution]
                 else:
-                    # Standard stretch resize
+                    # Try to parse as custom resolution
+                    target_size = parse_custom_resolution(resolution)
+                
+                if target_size:
                     img = img.resize(target_size, Image.Resampling.LANCZOS)
-                    _LOGGER.debug(f"Resized image to {resolution}")
+                    _LOGGER.debug(f"Resizing image to {resolution} ({target_size[0]}x{target_size[1]})")
+                else:
+                    _LOGGER.warning(f"Invalid resolution format: {resolution}, using original size")
             
             # Apply optimization
             if optimize_mode == "esp32":
@@ -110,9 +99,13 @@ def process_image(input_path: str, output_path: str, resolution: str, optimize_m
             
             img.save(output_path, **save_options)
             
+            if not os.path.exists(output_path):
+                raise Exception(f"Failed to save PNG file: {output_path}")
+            
             original_size = os.path.getsize(input_path)
             converted_size = os.path.getsize(output_path)
-            _LOGGER.info(f"Converted {input_path} to {output_path}. Original: {original_size/1024:.1f}KB, Converted: {converted_size/1024:.1f}KB")
+            _LOGGER.info(f"Successfully converted {input_path} to {output_path}")
+            _LOGGER.info(f"File sizes - Original: {original_size/1024:.1f}KB, Converted: {converted_size/1024:.1f}KB")
             
     except Exception as e:
         _LOGGER.error(f"Error processing image: {str(e)}")
@@ -127,8 +120,12 @@ async def async_setup_services(hass: HomeAssistant) -> None:
         url_input_path = call.data.get("url_input_path")
         output_path = call.data.get("output_path")
         resolution = call.data.get("resolution", "320x240")
+        custom_resolution = call.data.get("custom_resolution")
         optimize_mode = call.data.get("optimize_mode", "none")
-        zoom_mode = call.data.get("zoom_mode", "fit")
+        
+        # Use custom_resolution if provided
+        if custom_resolution:
+            resolution = custom_resolution
         
         if not local_input_path and not url_input_path:
             raise Exception("Either local_input_path or url_input_path must be provided")
@@ -145,7 +142,7 @@ async def async_setup_services(hass: HomeAssistant) -> None:
                     raise FileNotFoundError(f"Input file not found: {input_path}")
             
             await hass.async_add_executor_job(
-                process_image, input_path, output_path, resolution, optimize_mode, zoom_mode
+                process_image, input_path, output_path, resolution, optimize_mode
             )
             
         except FileNotFoundError as e:

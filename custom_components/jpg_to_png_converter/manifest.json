@@ -6,9 +6,10 @@
   "codeowners": ["@youkorr"],
   "requirements": [
     "Pillow>=9.0.0",
-    "aiohttp>=3.8.0"
+    "aiohttp>=3.8.0",
+    "opencv-python-headless>=4.5.0"
   ],
-  "version": "1.6.0",
+  "version": "1.7.0",
   "config_flow": true,
   "iot_class": "local_polling",
   "icon": "mdi:image-refresh",
@@ -22,8 +23,10 @@
   "supported_features": [
     "local_conversion",
     "remote_conversion",
+    "rtsp_capture",
     "resolution_scaling",
     "aspect_ratio_preservation",
     "optimization_modes"
   ]
 }
+

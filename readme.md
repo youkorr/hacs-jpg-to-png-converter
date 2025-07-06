@@ -2,202 +2,137 @@
   <img src="https://raw.githubusercontent.com/youkorr/hacs-jpg-to-png-converter/main/custom_components/jpg_to_png_converter/images/logo.png" alt="JPG/WebP to PNG Converter" width="400"/>
 </p>
 
-# JPG/WebP to PNG Converter for Home Assistant
+# JPG to PNG Converter - Guide ESPHome
 
-A Home Assistant integration that converts JPG/JPEG/WebP images to PNG format with customizable resolutions and optimization modes.
+Cette intégration HACS convertit vos images JPG/JPEG/WebP en PNG optimisées pour ESPHome, avec gestion de l'endianness pour les écrans RGB565.
 
-## Features
-- Convert JPG/JPEG and WebP images to PNG format
-- Support for local files and remote URLs
-- Multiple resolution options (320x240, 640x480, 800x600, 1280x720, 1920x1080)
-- Adjustable zoom modes: fit (stretch) or zoom (preserve aspect ratio)
-- ESP32 optimization mode (256 colors)
-- Standard optimization mode (128 colors for smaller file size)
-- Automatic output directory creation
-- Optimized PNG output
-- Asynchronous downloads for remote URLs
+## 🎯 Cas d'usage ESPHome
 
-## Prerequisites
-The integration will automatically install required dependencies:
-- Pillow (Python Imaging Library) >=9.0.0
-- aiohttp (for asynchronous HTTP requests) >=3.8.0
+### Problème résolu
+Les écrans ESPHome (comme les écrans TFT) utilisent souvent le format RGB565 avec un ordre d'octets spécifique :
+- **Big-endian** : Ordre naturel des octets
+- **Little-endian** : Octets inversés (courant sur ESP32)
 
-## Compatible Devices
-- ESP32 (optimized with 256 colors mode)
-- Any device that can display PNG images
-- Home Assistant compatible cameras
+### Solution
+Cette intégration permet de préparer vos images avec le bon ordre d'octets avant de les utiliser dans ESPHome.
 
-## Installation
+## 📋 Configuration ESPHome
 
-### Through Home Assistant UI
-1. Go to Settings > Devices & Services
-2. Click "Add Integration"
-3. Search for "JPG/WebP to PNG"
-4. Follow the configuration steps
+### Configuration type dans ESPHome :
+```yaml
+# config.yaml ESPHome
+image:
+  - file: 'source/images/back72.png'
+    id: back
+    type: RGB565
+    byte_order: little_endian  # ou big_endian
+```
 
-### HACS Installation
-1. Open HACS in your Home Assistant instance
-2. Click on "Integrations"
-3. Click the three dots in the top right corner
-4. Select "Custom repositories"
-5. Add this repository URL: `https://github.com/youkorr/hacs-jpg-to-png-converter`
-6. Select "Integration" as the category
-7. Click "Add"
-8. Install the integration through HACS
-9. Restart Home Assistant
-10. Go to Settings > Devices & Services
-11. Click "Add Integration"
-12. Search for "JPG/WebP to PNG"
-13. Follow the configuration steps
+### Configuration correspondante dans Home Assistant :
+```yaml
+# Automation Home Assistant
+service: jpg_to_png_converter.convert
+data:
+  local_input_path: "/config/esphome/source/images/back72.jpg"
+  output_path: "/config/esphome/source/images/back72.png"
+  resolution: "320x240"
+  optimize_mode: "esp32"
+  byte_order: "swap"  # Pour little_endian ESPHome
+```
 
-## Usage
+## 🔧 Correspondance des paramètres
 
-### Service
-The integration provides a service `jpg_to_png_converter.convert` with the following parameters:
+| ESPHome | Home Assistant | Description |
+|---------|---------------|-------------|
+| `byte_order: big_endian` | `byte_order: "default"` | Ordre naturel |
+| `byte_order: little_endian` | `byte_order: "swap"` | Octets inversés |
+| `type: RGB565` | `optimize_mode: "esp32"` | Optimisation ESP32 |
 
+## 🚀 Workflow recommandé
+
+1. **Préparez vos images** avec cette intégration
+2. **Testez** avec `byte_order: "default"` d'abord
+3. **Si les couleurs sont incorrectes**, utilisez `byte_order: "swap"`
+4. **Copiez** le PNG généré dans votre dossier ESPHome
+5. **Compilez** votre projet ESPHome
+
+## 💡 Conseils
+
+### Détection automatique
+Si vous ne savez pas quel ordre utiliser :
+1. Créez une image test avec `byte_order: "default"`
+2. Flashez sur votre ESP32
+3. Si les couleurs Rouge/Bleu sont inversées → utilisez `byte_order: "swap"`
+
+### Optimisation ESP32
 ```yaml
 service: jpg_to_png_converter.convert
 data:
-  local_input_path: "/config/www/image.jpg"  # For local files (optional)
-  url_input_path: "https://example.com/image.webp"  # For remote URLs (optional)
-  output_path: "/config/www/converted.png"  # Required
-  resolution: "original"  # Optional, default: "320x240"
-  zoom_mode: "fit"  # Optional, default: "fit"
-  optimize_mode: "none"  # Optional, default: "none"
+  optimize_mode: "esp32"  # Limite à 256 couleurs
+  resolution: "320x240"   # Résolution écran
+  byte_order: "swap"      # Pour little_endian
 ```
 
-#### Parameter Details
-
-| Parameter | Description | Required | Default | Options |
-|-----------|-------------|----------|---------|---------|
-| `local_input_path` | Path to the local input JPG/WebP file | No | - | Any valid file path |
-| `url_input_path` | URL of the remote JPG/WebP file | No | - | Any valid URL |
-| `output_path` | Path where the PNG file should be saved | Yes | - | Any valid file path |
-| `resolution` | Select output resolution | No | "320x240" | "original", "320x240", "640x480", "800x600", "1280x720", "1920x1080" |
-| `zoom_mode` | Mode de redimensionnement | No | "fit" | "fit" (Adapter - étirement), "zoom" (Zoom - conserve les proportions) |
-| `optimize_mode` | Choose optimization mode | No | "none" | "none", "esp32" (256 colors), "standard" (128 colors) |
-
-### Examples
-
-#### Local JPG/JPEG Conversion
+### Automation complète
 ```yaml
-service: jpg_to_png_converter.convert
-data:
-  local_input_path: "/config/www/image.jpg"
-  output_path: "/config/www/converted.png"
-  resolution: "original"
-  zoom_mode: "fit"
-  optimize_mode: "none"
+# Automation pour traiter plusieurs images
+automation:
+  - alias: "Convert Images for ESPHome"
+    trigger:
+      platform: homeassistant
+      event: start
+    action:
+      - repeat:
+          for_each:
+            - "background.jpg"
+            - "icon1.webp"
+            - "icon2.jpeg"
+          sequence:
+            - service: jpg_to_png_converter.convert
+              data:
+                local_input_path: "/config/www/original/{{ repeat.item }}"
+                output_path: "/config/esphome/images/{{ repeat.item | regex_replace('\\.(jpg|jpeg|webp)$', '.png') }}"
+                resolution: "320x240"
+                optimize_mode: "esp32"
+                byte_order: "swap"
 ```
 
-#### Local WebP Conversion with Aspect Ratio Preservation
-```yaml
-service: jpg_to_png_converter.convert
-data:
-  local_input_path: "/config/www/image.webp"
-  output_path: "/config/www/converted.png"
-  resolution: "640x480"
-  zoom_mode: "zoom"  # Preserve aspect ratio
-  optimize_mode: "standard"
-```
+## 🎨 Exemples pratiques
 
-#### Remote JPG/JPEG Conversion
+### Image pour écran 320x240 little-endian :
 ```yaml
 service: jpg_to_png_converter.convert
 data:
   url_input_path: "https://example.com/image.jpg"
-  output_path: "/config/www/converted.png"
-  resolution: "1920x1080"
-  zoom_mode: "fit"
+  output_path: "/config/esphome/images/converted.png"
+  resolution: "320x240"
   optimize_mode: "esp32"
+  byte_order: "swap"
 ```
 
-#### Remote WebP Conversion
+### Image haute résolution conservée :
 ```yaml
 service: jpg_to_png_converter.convert
 data:
-  url_input_path: "https://example.com/image.webp"
-  output_path: "/config/www/converted.png"
+  local_input_path: "/config/www/hires.jpg"
+  output_path: "/config/esphome/images/hires.png"
   resolution: "original"
-  zoom_mode: "zoom"  # Preserve aspect ratio
-  optimize_mode: "standard"
+  optimize_mode: "none"
+  byte_order: "default"
 ```
 
-### Example Automations
+## 🔍 Dépannage
 
-#### Convert Local JPG for ESP32 Display
-```yaml
-automation:
-  - alias: "Convert Local JPG for ESP32 Display"
-    trigger:
-      - platform: time_pattern
-        minutes: "/5"
-    action:
-      - service: jpg_to_png_converter.convert
-        data:
-          local_input_path: "/config/www/source.jpg"
-          output_path: "/config/www/esp32/display.png"
-          resolution: "original"
-          zoom_mode: "zoom"  # Preserve aspect ratio
-          optimize_mode: "esp32"
-```
+### Couleurs inversées Rouge/Bleu ?
+→ Changez `byte_order` de "default" à "swap" ou vice-versa
 
-#### Convert Remote WebP with Size Optimization
-```yaml
-automation:
-  - alias: "Convert Remote WebP with Size Optimization"
-    trigger:
-      - platform: state
-        entity_id: binary_sensor.camera_motion
-        to: "on"
-    action:
-      - service: jpg_to_png_converter.convert
-        data:
-          url_input_path: "https://example.com/camera_image.webp"
-          output_path: "/config/www/converted/image.png"
-          resolution: "320x240"  # Reduce resolution for smaller file
-          zoom_mode: "fit"
-          optimize_mode: "standard"
-```
+### Image trop lourde pour ESP32 ?
+→ Utilisez `optimize_mode: "esp32"` et une résolution adaptée
 
-## Optimization Modes
-- **ESP32 Mode**: Uses 256 colors, optimized for ESP32 displays. Best for maintaining image quality on ESP32 devices.
-- **Standard Mode**: Uses 128 colors with additional compression. Best for reducing file size while maintaining acceptable quality.
+### Erreur de compilation ESPHome ?
+→ Vérifiez que le fichier PNG est dans le bon dossier et accessible
 
-## Supported Formats
-- JPG
-- JPEG
-- WebP
+---
 
-## Supported Features
-- Local file conversion
-- Remote URL conversion
-- Resolution scaling with multiple preset options
-- Aspect ratio preservation with zoom mode options
-- Multiple optimization modes for different device types
-
-## Integration Details
-- Version: 1.6.0
-- IoT Class: local_polling
-- Icon: mdi:image-refresh
-- Integration Type: service
-- Config Flow: Yes
-
-## Troubleshooting
-- Make sure the input path exists and is accessible
-- Ensure Home Assistant has write permissions to the output directory
-- Check Home Assistant logs for detailed error messages
-- For ESP32 devices, use optimize_mode: "esp32" with resolution: "original"
-- For smaller file sizes, use optimize_mode: "standard"
-
-## Support
-For bugs or feature requests, please open an issue on GitHub at:
-[https://github.com/youkorr/hacs-jpg-to-png-converter/issues](https://github.com/youkorr/hacs-jpg-to-png-converter/issues)
-
-## Documentation
-Full documentation is available at:
-[https://github.com/youkorr/hacs-jpg-to-png-converter](https://github.com/youkorr/hacs-jpg-to-png-converter)
-
-## License
-This project is licensed under the MIT License - see the LICENSE file for details.
+*Cette intégration simplifie la préparation d'images pour ESPHome en gérant automatiquement l'endianness et l'optimisation.*
 

@@ -3,6 +3,7 @@ import os
 import tempfile
 import aiohttp
 import re
+import numpy as np
 from PIL import Image
 import logging
 from homeassistant.core import HomeAssistant, ServiceCall
@@ -28,6 +29,28 @@ def parse_custom_resolution(resolution_str: str) -> tuple:
         return (width, height)
     return None
 
+def swap_bytes(image: Image.Image) -> Image.Image:
+    """Swap bytes for endianness conversion (ESPHome compatible)."""
+    try:
+        # Convert to RGB if not already
+        if image.mode != 'RGB':
+            image = image.convert('RGB')
+        
+        # Convert to numpy array for byte manipulation
+        img_array = np.array(image)
+        
+        # For ESPHome RGB565 little-endian compatibility:
+        # Swap R and B channels to match expected byte order
+        # This is equivalent to swapping bytes in RGB565 format
+        img_array[:, :, [0, 2]] = img_array[:, :, [2, 0]]
+        
+        # Convert back to PIL Image
+        return Image.fromarray(img_array, mode='RGB')
+        
+    except Exception as e:
+        _LOGGER.warning(f"Failed to swap bytes, using original image: {str(e)}")
+        return image
+
 async def download_image(url: str) -> str:
     """Download image from URL using aiohttp and return temporary file path."""
     try:
@@ -46,7 +69,7 @@ async def download_image(url: str) -> str:
         _LOGGER.error(f"Failed to download image: {str(e)}")
         raise Exception(f"Failed to download image: {str(e)}")
 
-def process_image(input_path: str, output_path: str, resolution: str, optimize_mode: str) -> None:
+def process_image(input_path: str, output_path: str, resolution: str, optimize_mode: str, byte_order: str = "default") -> None:
     """Process and convert image to PNG."""
     try:
         _LOGGER.debug(f"Opening image from {input_path}")
@@ -58,6 +81,17 @@ def process_image(input_path: str, output_path: str, resolution: str, optimize_m
             
             # Convert to RGB if needed
             if img.format in ['WEBP', 'JPEG', 'JPG']:
+                img = img.convert('RGB')
+            
+            # Apply byte order conversion if requested
+            if byte_order == "swap":
+                _LOGGER.debug("Applying byte order swap for ESPHome compatibility")
+                img = swap_bytes(img)
+            else:
+                _LOGGER.debug("Using default byte order (native)")
+            
+            # Convert to RGB for consistent output (ESPHome expects RGB)
+            if img.mode != 'RGB':
                 img = img.convert('RGB')
             
             # Resize if needed
@@ -106,6 +140,7 @@ def process_image(input_path: str, output_path: str, resolution: str, optimize_m
             converted_size = os.path.getsize(output_path)
             _LOGGER.info(f"Successfully converted {input_path} to {output_path}")
             _LOGGER.info(f"File sizes - Original: {original_size/1024:.1f}KB, Converted: {converted_size/1024:.1f}KB")
+            _LOGGER.info(f"Byte order: {byte_order}")
             
     except Exception as e:
         _LOGGER.error(f"Error processing image: {str(e)}")
@@ -116,12 +151,25 @@ async def async_setup_services(hass: HomeAssistant) -> None:
     
     async def convert_image(call: ServiceCall) -> None:
         """Handle the service call."""
+        # Get default values from config entry options
+        config_entries = hass.config_entries.async_entries("jpg_to_png_converter")
+        default_byte_order = "default"
+        default_resolution = "320x240"
+        default_optimize_mode = "none"
+        
+        if config_entries:
+            entry = config_entries[0]
+            default_byte_order = entry.options.get("byte_order", "default")
+            default_resolution = entry.options.get("default_resolution", "320x240")
+            default_optimize_mode = entry.options.get("default_optimize_mode", "none")
+        
         local_input_path = call.data.get("local_input_path")
         url_input_path = call.data.get("url_input_path")
         output_path = call.data.get("output_path")
-        resolution = call.data.get("resolution", "320x240")
+        resolution = call.data.get("resolution", default_resolution)
         custom_resolution = call.data.get("custom_resolution")
-        optimize_mode = call.data.get("optimize_mode", "none")
+        optimize_mode = call.data.get("optimize_mode", default_optimize_mode)
+        byte_order = call.data.get("byte_order", default_byte_order)
         
         # Use custom_resolution if provided
         if custom_resolution:
@@ -142,7 +190,7 @@ async def async_setup_services(hass: HomeAssistant) -> None:
                     raise FileNotFoundError(f"Input file not found: {input_path}")
             
             await hass.async_add_executor_job(
-                process_image, input_path, output_path, resolution, optimize_mode
+                process_image, input_path, output_path, resolution, optimize_mode, byte_order
             )
             
         except FileNotFoundError as e:

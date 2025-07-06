@@ -1,58 +1,57 @@
-# Service jpg_to_png_converter.convert
 convert:
-  description: "Convert a JPG/WebP image to PNG format from local path or URL"
-  target: {}
+  name: Convert Image
+  description: Convert JPG/JPEG/WebP images to PNG format
   fields:
     local_input_path:
-      description: Path to the local input JPG/WebP file
-      example: "/config/www/image.jpg"
-      required: false
+      description: Local path to input image file
+      example: "/config/www/input.jpg"
       selector:
-        text: {}
+        text:
     url_input_path:
-      description: URL of the remote JPG/WebP file
+      description: URL to input image file
       example: "https://example.com/image.jpg"
-      required: false
       selector:
-        text: {}
+        text:
     output_path:
-      description: Path where the PNG file should be saved
-      example: "/config/www/image.png"
+      description: Output path for converted PNG file
+      example: "/config/www/output.png"
       required: true
       selector:
-        text: {}
+        text:
     resolution:
-      description: "Select output resolution"
-      example: "original"
+      description: Target resolution for the converted image
+      example: "320x240"
       default: "320x240"
-      required: false
       selector:
         select:
           options:
-            - "original"
             - "320x240"
             - "640x480"
             - "800x600"
             - "1280x720"
             - "1920x1080"
+            - "original"
     custom_resolution:
-      description: "Custom resolution in WIDTHxHEIGHT format (e.g. 1024x768)"
+      description: Custom resolution in format WIDTHxHEIGHT (overrides resolution field)
       example: "1024x768"
-      required: false
       selector:
         text:
-          placeholder: "WIDTHxHEIGHT"
     optimize_mode:
-      name: Optimization Mode
-      description: "Choose optimization mode"
-      required: false
+      description: Optimization mode for the converted image
+      example: "none"
       default: "none"
       selector:
         select:
           options:
-            - label: "None"
-              value: "none"
-            - label: "ESP32 Mode (256 colors)"
-              value: "esp32"
-            - label: "Standard Optimization (128 colors)"
-              value: "standard"
+            - "none"
+            - "esp32"
+            - "standard"
+    byte_order:
+      description: "Byte order handling for ESPHome compatibility"
+      example: "default"
+      default: "default"
+      selector:
+        select:
+          options:
+            - "default"
+            - "swap"

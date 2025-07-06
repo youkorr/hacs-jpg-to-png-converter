@@ -1,14 +1,47 @@
 {
-  "title": "JPG to PNG Converter",
   "config": {
     "step": {
       "user": {
         "title": "JPG to PNG Converter",
-        "description": "Set up JPG to PNG Converter integration"
+        "description": "Configuration du convertisseur d'images JPG/JPEG/WebP vers PNG",
+        "data": {
+          "byte_order": "Ordre des octets par défaut"
+        }
       }
     },
+    "error": {
+      "single_instance_allowed": "Une seule instance est autorisée"
+    },
     "abort": {
-      "single_instance_allowed": "[%key:common::config_flow::abort::single_instance_allowed%]"
+      "single_instance_allowed": "Une seule instance est autorisée"
+    }
+  },
+  "options": {
+    "step": {
+      "init": {
+        "title": "Options du convertisseur",
+        "description": "Configurez les paramètres par défaut du convertisseur",
+        "data": {
+          "byte_order": "Ordre des octets par défaut",
+          "default_resolution": "Résolution par défaut",
+          "default_optimize_mode": "Mode d'optimisation par défaut"
+        }
+      }
+    }
+  },
+  "selector": {
+    "byte_order": {
+      "options": {
+        "default": "Défaut (big-endian natif)",
+        "swap": "Échange (little-endian pour ESPHome)"
+      }
+    },
+    "optimize_mode": {
+      "options": {
+        "none": "Aucune optimisation",
+        "esp32": "Optimisation ESP32 (256 couleurs)",
+        "standard": "Optimisation standard (128 couleurs)"
+      }
     }
   }
 }

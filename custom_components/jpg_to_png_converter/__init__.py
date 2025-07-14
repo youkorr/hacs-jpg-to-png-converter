@@ -26,3 +26,4 @@ async def async_unload_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
 async def async_setup(hass: HomeAssistant, config: dict) -> bool:
     """Set up the JPG to PNG Converter component."""
     return True
+

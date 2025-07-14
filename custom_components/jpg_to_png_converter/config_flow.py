@@ -30,3 +30,4 @@ class JPGToPNGConverterConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
             )
 
         return self.async_create_entry(title="JPG to PNG Converter", data={})
+

@@ -1,30 +1,57 @@
 convert:
   name: Convertir une image en PNG
-  description: "Convertit un fichier JPG, JPEG ou WebP en PNG avec options de redimensionnement et d'optimisation"
+  description: "Convertit un fichier JPG, JPEG ou WebP en PNG avec options de redimensionnement et d’optimisation."
   fields:
     local_input_path:
       name: Chemin local d'entrée
       description: "Chemin complet vers le fichier source (JPG/JPEG/WebP) sur le disque local"
       example: "/config/www/image.jpg"
+      required: false
+      selector:
+        text:
     url_input_path:
       name: URL de l'image
       description: "URL complète vers l'image source (HTTP ou HTTPS)"
       example: "https://exemple.com/image.webp"
+      required: false
+      selector:
+        text:
     output_path:
       name: Chemin de sortie
       description: "Chemin complet du fichier PNG généré"
       example: "/config/www/image.png"
+      required: true
+      selector:
+        text:
     resolution:
       name: Résolution
-      description: "Résolution prédéfinie : 320x240, 640x480, 800x600, 1280x720, 1920x1080, original"
-      example: "640x480"
+      description: "Résolution prédéfinie"
+      default: "320x240"
+      selector:
+        select:
+          options:
+            - "320x240"
+            - "640x480"
+            - "800x600"
+            - "1280x720"
+            - "1920x1080"
+            - "original"
     custom_resolution:
       name: Résolution personnalisée
-      description: "Largeur x hauteur au format 000x000 (écrase la résolution prédéfinie)"
-      example: "1024x768"
+      description: "Largeur x hauteur au format 000x000"
+      required: false
+      selector:
+        text:
     optimize_mode:
       name: Mode d'optimisation
-      description: "Ajuste la palette de couleurs : none, esp32 (256 couleurs), standard (128 couleurs)"
-      example: "esp32"
+      description: "Ajuste la palette de couleurs"
+      default: "none"
+      selector:
+        select:
+          options:
+            - "none"
+            - "esp32"
+            - "standard"
+
 
 

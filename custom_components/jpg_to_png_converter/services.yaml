@@ -1,27 +1,31 @@
 # Service jpg_to_png_converter.convert
 convert:
+  name: "Convert JPG/WebP to PNG"
   description: "Convert a JPG/WebP image to PNG format from local path or URL"
-  target: {}
   fields:
     local_input_path:
-      description: Path to the local input JPG/WebP file
+      name: "Local Input Path"
+      description: "Path to the local input JPG/WebP file"
       example: "/config/www/image.jpg"
       required: false
       selector:
         text: {}
     url_input_path:
-      description: URL of the remote JPG/WebP file
+      name: "URL Input Path"
+      description: "URL of the remote JPG/WebP file"
       example: "https://example.com/image.jpg"
       required: false
       selector:
         text: {}
     output_path:
-      description: Path where the PNG file should be saved
+      name: "Output Path"
+      description: "Path where the PNG file should be saved"
       example: "/config/www/image.png"
       required: true
       selector:
         text: {}
     resolution:
+      name: "Resolution"
       description: "Select output resolution"
       example: "original"
       default: "320x240"
@@ -29,13 +33,20 @@ convert:
       selector:
         select:
           options:
-            - "original"
-            - "320x240"
-            - "640x480"
-            - "800x600"
-            - "1280x720"
-            - "1920x1080"
+            - label: "Original"
+              value: "original"
+            - label: "320x240"
+              value: "320x240"
+            - label: "640x480"
+              value: "640x480"
+            - label: "800x600"
+              value: "800x600"
+            - label: "1280x720"
+              value: "1280x720"
+            - label: "1920x1080"
+              value: "1920x1080"
     custom_resolution:
+      name: "Custom Resolution"
       description: "Custom resolution in WIDTHxHEIGHT format (e.g. 1024x768)"
       example: "1024x768"
       required: false
@@ -43,7 +54,7 @@ convert:
         text:
           placeholder: "WIDTHxHEIGHT"
     optimize_mode:
-      name: Optimization Mode
+      name: "Optimization Mode"
       description: "Choose optimization mode"
       required: false
       default: "none"

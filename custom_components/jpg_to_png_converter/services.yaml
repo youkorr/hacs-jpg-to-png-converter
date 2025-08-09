@@ -1,57 +1,62 @@
+
+# Service jpg_to_png_converter.convert
 convert:
-  name: Convertir une image en PNG
-  description: "Convertit un fichier JPG, JPEG ou WebP en PNG avec options de redimensionnement et d’optimisation."
+  description: "Convert a JPG/WebP image to PNG format from local path or URL"
+  target: {}
   fields:
     local_input_path:
-      name: Chemin local d'entrée
-      description: "Chemin complet vers le fichier source (JPG/JPEG/WebP) sur le disque local"
+      description: Path to the local input JPG/WebP file
       example: "/config/www/image.jpg"
       required: false
       selector:
-        text:
+        text: {}
     url_input_path:
-      name: URL de l'image
-      description: "URL complète vers l'image source (HTTP ou HTTPS)"
-      example: "https://exemple.com/image.webp"
+      description: URL of the remote JPG/WebP file
+      example: "https://example.com/image.jpg"
       required: false
       selector:
-        text:
+        text: {}
     output_path:
-      name: Chemin de sortie
-      description: "Chemin complet du fichier PNG généré"
+      description: Path where the PNG file should be saved
       example: "/config/www/image.png"
       required: true
       selector:
-        text:
+        text: {}
     resolution:
-      name: Résolution
-      description: "Résolution prédéfinie"
+      description: "Select output resolution"
+      example: "original"
       default: "320x240"
+      required: false
       selector:
         select:
           options:
+            - "original"
             - "320x240"
             - "640x480"
             - "800x600"
             - "1280x720"
             - "1920x1080"
-            - "original"
     custom_resolution:
-      name: Résolution personnalisée
-      description: "Largeur x hauteur au format 000x000"
+      description: "Custom resolution in WIDTHxHEIGHT format (e.g. 1024x768)"
+      example: "1024x768"
       required: false
       selector:
         text:
+          placeholder: "WIDTHxHEIGHT"
     optimize_mode:
-      name: Mode d'optimisation
-      description: "Ajuste la palette de couleurs"
+      name: Optimization Mode
+      description: "Choose optimization mode"
+      required: false
       default: "none"
       selector:
         select:
           options:
-            - "none"
-            - "esp32"
-            - "standard"
+            - label: "None"
+              value: "none"
+            - label: "ESP32 Mode (256 colors)"
+              value: "esp32"
+            - label: "Standard Optimization (128 colors)"
+              value: "standard"
 
 
 

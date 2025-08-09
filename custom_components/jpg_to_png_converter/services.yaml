@@ -1,59 +1,30 @@
-# Service jpg_to_png_converter.convert
 convert:
-  description: "Convert a JPG/WebP image to PNG format from local path or URL"
-  target: {}
+  name: Convertir une image en PNG
+  description: "Convertit un fichier JPG, JPEG ou WebP en PNG avec options de redimensionnement et d'optimisation"
   fields:
     local_input_path:
-      description: Path to the local input JPG/WebP file
+      name: Chemin local d'entrée
+      description: "Chemin complet vers le fichier source (JPG/JPEG/WebP) sur le disque local"
       example: "/config/www/image.jpg"
-      required: false
-      selector:
-        text: {}
     url_input_path:
-      description: URL of the remote JPG/WebP file
-      example: "https://example.com/image.jpg"
-      required: false
-      selector:
-        text: {}
+      name: URL de l'image
+      description: "URL complète vers l'image source (HTTP ou HTTPS)"
+      example: "https://exemple.com/image.webp"
     output_path:
-      description: Path where the PNG file should be saved
+      name: Chemin de sortie
+      description: "Chemin complet du fichier PNG généré"
       example: "/config/www/image.png"
-      required: true
-      selector:
-        text: {}
     resolution:
-      description: "Select output resolution"
-      example: "original"
-      default: "320x240"
-      required: false
-      selector:
-        select:
-          options:
-            - "original"
-            - "320x240"
-            - "640x480"
-            - "800x600"
-            - "1280x720"
-            - "1920x1080"
+      name: Résolution
+      description: "Résolution prédéfinie : 320x240, 640x480, 800x600, 1280x720, 1920x1080, original"
+      example: "640x480"
     custom_resolution:
-      description: "Custom resolution in WIDTHxHEIGHT format (e.g. 1024x768)"
+      name: Résolution personnalisée
+      description: "Largeur x hauteur au format 000x000 (écrase la résolution prédéfinie)"
       example: "1024x768"
-      required: false
-      selector:
-        text:
-          placeholder: "WIDTHxHEIGHT"
     optimize_mode:
-      name: Optimization Mode
-      description: "Choose optimization mode"
-      required: false
-      default: "none"
-      selector:
-        select:
-          options:
-            - label: "None"
-              value: "none"
-            - label: "ESP32 Mode (256 colors)"
-              value: "esp32"
-            - label: "Standard Optimization (128 colors)"
-              value: "standard"
+      name: Mode d'optimisation
+      description: "Ajuste la palette de couleurs : none, esp32 (256 couleurs), standard (128 couleurs)"
+      example: "esp32"
+
 

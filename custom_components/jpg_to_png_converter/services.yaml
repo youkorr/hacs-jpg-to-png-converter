@@ -1,72 +1,69 @@
-# Service jpg_to_png_converter.convert
 convert:
-  name: "Convert JPG/WebP to PNG"
-  description: "Convert a JPG/WebP image to PNG format from local path or URL"
+  name: Convert JPG/WebP to PNG
+  description: Convert a JPG/WebP image to PNG format from local path or URL
   fields:
     local_input_path:
-      name: "Local Input Path"
-      description: "Path to the local input JPG/WebP file"
-      example: "/config/www/image.jpg"
-      required: false
-      selector:
-        text: {}
-    url_input_path:
-      name: "URL Input Path"
-      description: "URL of the remote JPG/WebP file"
-      example: "https://example.com/image.jpg"
-      required: false
-      selector:
-        text: {}
-    output_path:
-      name: "Output Path"
-      description: "Path where the PNG file should be saved"
-      example: "/config/www/image.png"
-      required: true
-      selector:
-        text: {}
-    resolution:
-      name: "Resolution"
-      description: "Select output resolution"
-      example: "original"
-      default: "320x240"
-      required: false
-      selector:
-        select:
-          options:
-            - label: "Original"
-              value: "original"
-            - label: "320x240"
-              value: "320x240"
-            - label: "640x480"
-              value: "640x480"
-            - label: "800x600"
-              value: "800x600"
-            - label: "1280x720"
-              value: "1280x720"
-            - label: "1920x1080"
-              value: "1920x1080"
-    custom_resolution:
-      name: "Custom Resolution"
-      description: "Custom resolution in WIDTHxHEIGHT format (e.g. 1024x768)"
-      example: "1024x768"
+      name: Local Input Path
+      description: Path to the local input JPG/WebP file
+      example: /config/www/image.jpg
       required: false
       selector:
         text:
-          placeholder: "WIDTHxHEIGHT"
-    optimize_mode:
-      name: "Optimization Mode"
-      description: "Choose optimization mode"
+    url_input_path:
+      name URL Input Path
+      description: URL of the remote JPG/WebP file
+      example: https://example.com/image.jpg
       required: false
-      default: "none"
+      selector:
+        text:
+    output_path:
+      name: Output Path
+      description: Path where the PNG file should be saved
+      example: /config/www/image.png
+      required: true
+      selector:
+        text:
+    resolution:
+      name: Resolution
+      description: Select output resolution
+      default: 320x240
+      required: false
       selector:
         select:
           options:
-            - label: "None"
-              value: "none"
-            - label: "ESP32 Mode (256 colors)"
-              value: "esp32"
-            - label: "Standard Optimization (128 colors)"
-              value: "standard"
-
+            - label: Original
+              value: original
+            - label: 320x240
+              value: 320x240
+            - label: 640x480
+              value: 640x480
+            - label: 800x600
+              value: 800x600
+            - label: 1280x720
+              value: 1280x720
+            - label: 1920x1080
+              value: 1920x1080
+    custom_resolution:
+      name: Custom Resolution
+      description: Custom resolution in WIDTHxHEIGHT format
+      example: 1024x768
+      required: false
+      selector:
+        text:
+          placeholder: WIDTHxHEIGHT
+    optimize_mode:
+      name: Optimization Mode
+      description: Choose optimization mode
+      default: none
+      required: false
+      selector:
+        select:
+          options:
+            - label: None
+              value: none
+            - label: ESP32 Mode (256 colors)
+              value: esp32
+            - label: Standard Optimization (128 colors)
+              value: standard
 
 
